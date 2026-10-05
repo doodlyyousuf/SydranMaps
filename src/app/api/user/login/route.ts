@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyPassword, createUserToken, setUserCookie, isTeamSydranOnline } from '@/lib/user-auth';
+import { verifyPassword, createUserToken, setUserCookie } from '@/lib/user-auth';
 
 /**
  * POST /api/user/login
  *   Body: { username, password }
  *
- * Verifies credentials, checks the user is verified (IGN payment done),
- * and checks that Team Sydran is online (at least one staff member
- * active in the last 5 min). If all checks pass, sets a session cookie.
+ * Verifies credentials and checks the user is verified (IGN payment done).
+ * Login works with just username + password — no Team Sydran online
+ * requirement. The IGN verification (paying a small amount to
+ * doodly_yousuf) is still required before login is allowed.
  *
  * Returns 401 for wrong credentials.
- * Returns 403 if user not verified yet or Team Sydran is offline.
+ * Returns 403 if user not verified yet.
  */
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
@@ -40,18 +41,6 @@ export async function POST(req: NextRequest) {
         error: 'Your Minecraft IGN is not verified yet. Pay the verification amount to doodly_yousuf in-game.',
         needsVerification: true,
         verifyAmount: user.verifyAmount,
-      },
-      { status: 403 }
-    );
-  }
-
-  // Team Sydran online check — block login if no staff is online.
-  const teamOnline = await isTeamSydranOnline();
-  if (!teamOnline) {
-    return NextResponse.json(
-      {
-        error: 'Team Sydran is offline. Login is disabled until a staff member is online.',
-        teamOffline: true,
       },
       { status: 403 }
     );

@@ -19,7 +19,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   const { route, navigate } = useRouter();
   const { count, hydrated } = useCart();
   const { authed } = useAuth();
-  const { user, teamOnline, logout: userLogout } = useUserAuth();
+  const { user, logout: userLogout } = useUserAuth();
   const { toast } = useToast();
 
   // Pointer-following glow that lights up the background grid near the
@@ -151,11 +151,6 @@ function Shell({ children }: { children: React.ReactNode }) {
             >
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Sign in</span>
-              {/* Small online/offline dot indicator */}
-              <span
-                className={`inline-block h-1.5 w-1.5 rounded-full ${teamOnline ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`}
-                title={teamOnline ? 'Team Sydran online' : 'Team Sydran offline'}
-              />
             </button>
           )}
 

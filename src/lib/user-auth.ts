@@ -179,7 +179,10 @@ export async function isTeamSydranOnline(): Promise<boolean> {
   return Date.now() - cfg.lastStaffHeartbeat.getTime() < HEARTBEAT_TTL_MS;
 }
 
-/** Generate a random verify amount between 1000 and 9999 coins. */
+/** Generate a random verify amount between 100 and 999 coins.
+    Small enough to be a trivial verification payment, but large enough
+    that it's unlikely to collide with a normal transaction. Always
+    under 999 per the spec. */
 export function generateVerifyAmount(): number {
-  return 1000 + Math.floor(Math.random() * 9000);
+  return 100 + Math.floor(Math.random() * 900); // 100–999
 }

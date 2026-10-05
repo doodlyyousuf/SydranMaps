@@ -5,18 +5,18 @@ import { useRouter } from './router';
 import { useUserAuth } from './use-user-auth';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, LogIn, AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { ArrowLeft, LogIn, AlertCircle } from 'lucide-react';
 
 /**
  * User (customer) login page.
  *
- * Checks credentials + that the user is verified + that Team Sydran
- * is online. If Team Sydran is offline, the login button is disabled
- * with an explanatory message.
+ * Login works with just username + password — no Team Sydran online
+ * requirement. The only gate is that the user's Minecraft IGN must
+ * be verified (paid the small amount to doodly_yousuf).
  */
 export function UserLoginView() {
   const { navigate } = useRouter();
-  const { login, teamOnline, user } = useUserAuth();
+  const { login, user } = useUserAuth();
   const { toast } = useToast();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -63,22 +63,6 @@ export function UserLoginView() {
           </div>
         </div>
 
-        {/* Team Sydran online status banner */}
-        <div
-          className={`mb-4 flex items-center gap-2 rounded-[3px] border-[1.5px] p-2.5 text-sm ${
-            teamOnline
-              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700'
-              : 'border-accent/40 bg-accent/10 text-accent-deep'
-          }`}
-        >
-          {teamOnline ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
-          <span>
-            {teamOnline
-              ? 'Team Sydran is online — login available.'
-              : 'Team Sydran is offline — login disabled until a staff member is online.'}
-          </span>
-        </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="username" className="mb-1.5 block text-sm font-semibold">Username</label>
@@ -87,7 +71,8 @@ export function UserLoginView() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               autoComplete="username"
-              disabled={submitting || !teamOnline}
+              disabled={submitting}
+              autoFocus
             />
           </div>
           <div>
@@ -98,7 +83,7 @@ export function UserLoginView() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
-              disabled={submitting || !teamOnline}
+              disabled={submitting}
             />
           </div>
 
@@ -109,11 +94,7 @@ export function UserLoginView() {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={submitting || !teamOnline}
-            className="sydran-btn w-full"
-          >
+          <button type="submit" disabled={submitting} className="sydran-btn w-full">
             {submitting ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
