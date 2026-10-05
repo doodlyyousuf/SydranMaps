@@ -6,7 +6,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-archivo);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -37,112 +37,118 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* ─── Sydran Maps — Minecraft inventory-slot theme ────────────────────
-   Palette: emerald + gold on warm dark moss, with parchment text.
-   Inspired by Minecraft inventory slots: beveled dark borders, item-glow
-   on hover, oak-plank panels. No blue, no indigo.
+/* ─── Sydran Maps — paper editorial theme ─────────────────────────────
+   Warm cream paper background, dark warm-ink text, burnt orange accent.
+   Sharp 3px corners, thin 1.5px outlines, no bevels or heavy shadows.
+   Editorial / print-zine feel — opposite of the previous dark slot UI.
 */
 :root {
-  --radius: 0.25rem; /* tight, blocky */
+  --radius: 3px; /* sharp, like print */
 
-  /* Light mode (rarely used; dark is default) */
-  --background: oklch(0.97 0.008 100);
-  --foreground: oklch(0.18 0.01 80);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.01 80);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.01 80);
-  --primary: oklch(0.55 0.16 150);
-  --primary-foreground: oklch(0.99 0.005 100);
-  --secondary: oklch(0.93 0.01 100);
-  --secondary-foreground: oklch(0.2 0.02 80);
-  --muted: oklch(0.94 0.005 100);
-  --muted-foreground: oklch(0.45 0.01 80);
-  --accent: oklch(0.72 0.16 70);
-  --accent-foreground: oklch(0.2 0.04 70);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.85 0.01 80);
-  --input: oklch(0.92 0.01 80);
-  --ring: oklch(0.5 0.16 150);
-  --chart-1: oklch(0.65 0.18 50);
-  --chart-2: oklch(0.6 0.16 160);
-  --chart-3: oklch(0.55 0.13 30);
-  --chart-4: oklch(0.7 0.18 85);
-  --chart-5: oklch(0.6 0.2 320);
-  --sidebar: oklch(0.97 0.008 100);
-  --sidebar-foreground: oklch(0.18 0.01 80);
-  --sidebar-primary: oklch(0.55 0.16 150);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.93 0.01 100);
-  --sidebar-accent-foreground: oklch(0.2 0.02 80);
-  --sidebar-border: oklch(0.85 0.01 80);
-  --sidebar-ring: oklch(0.5 0.16 150);
+  /* Light mode IS the default — this is a paper-based theme. */
+  --background: oklch(0.935 0.03 85);          /* warm cream paper */
+  --foreground: oklch(0.24 0.028 60);           /* dark warm ink */
+
+  --card: oklch(0.895 0.042 82);                /* deeper cream for cards */
+  --card-foreground: oklch(0.24 0.028 60);
+  --popover: oklch(0.965 0.018 85);
+  --popover-foreground: oklch(0.24 0.028 60);
+
+  /* Primary = ink (dark) — buttons are dark with paper text */
+  --primary: oklch(0.24 0.028 60);
+  --primary-foreground: oklch(0.97 0.012 85);
+
+  /* Accent = burnt orange */
+  --accent: oklch(0.53 0.17 36);
+  --accent-deep: oklch(0.45 0.15 36);
+  --accent-foreground: oklch(0.97 0.012 85);
+
+  --secondary: oklch(0.895 0.042 82);
+  --secondary-foreground: oklch(0.24 0.028 60);
+  --muted: oklch(0.895 0.042 82);
+  --muted-foreground: oklch(0.46 0.03 65);      /* soft brown for secondary text */
+
+  --destructive: oklch(0.5 0.18 25);
+  --border: oklch(0.8 0.04 78);                 /* light brown rule lines */
+  --input: oklch(0.8 0.04 78);
+  --ring: oklch(0.53 0.17 36);
+
+  --chart-1: oklch(0.53 0.17 36);
+  --chart-2: oklch(0.45 0.13 150);
+  --chart-3: oklch(0.55 0.13 60);
+  --chart-4: oklch(0.5 0.14 250);
+  --chart-5: oklch(0.6 0.18 320);
+
+  --sidebar: oklch(0.895 0.042 82);
+  --sidebar-foreground: oklch(0.24 0.028 60);
+  --sidebar-primary: oklch(0.24 0.028 60);
+  --sidebar-primary-foreground: oklch(0.97 0.012 85);
+  --sidebar-accent: oklch(0.8 0.04 78);
+  --sidebar-accent-foreground: oklch(0.24 0.028 60);
+  --sidebar-border: oklch(0.8 0.04 78);
+  --sidebar-ring: oklch(0.53 0.17 36);
 }
 
+/* Dark mode — inverted paper (ink bg, paper text). Used for the
+   'How it works' section and the selection tray. */
 .dark {
-  /* Deep warm moss background — almost black with green tinge */
-  --background: oklch(0.155 0.012 145);
-  /* Parchment foreground — warm cream, not pure white */
-  --foreground: oklch(0.94 0.018 95);
-
-  /* Card: dark moss panel — slightly lifted from background */
-  --card: oklch(0.21 0.014 145);
-  --card-foreground: oklch(0.94 0.018 95);
-  --popover: oklch(0.21 0.014 145);
-  --popover-foreground: oklch(0.94 0.018 95);
-
-  /* Primary: Minecraft grass emerald */
-  --primary: oklch(0.7 0.17 152);
-  --primary-foreground: oklch(0.13 0.02 150);
-
-  /* Accent: warm gold (treasure, prices) */
-  --accent: oklch(0.82 0.16 75);
-  --accent-foreground: oklch(0.18 0.04 75);
-
-  --secondary: oklch(0.27 0.018 145);
-  --secondary-foreground: oklch(0.94 0.018 95);
-  --muted: oklch(0.24 0.012 145);
-  --muted-foreground: oklch(0.7 0.018 100);
-
-  --destructive: oklch(0.65 0.21 25);
-  --border: oklch(0.32 0.014 145);
-  --input: oklch(0.26 0.014 145);
-  --ring: oklch(0.6 0.17 152);
-
-  --chart-1: oklch(0.7 0.17 152);
-  --chart-2: oklch(0.82 0.16 75);
-  --chart-3: oklch(0.65 0.21 25);
-  --chart-4: oklch(0.72 0.16 220);
-  --chart-5: oklch(0.65 0.18 30);
-
-  --sidebar: oklch(0.18 0.012 145);
-  --sidebar-foreground: oklch(0.94 0.018 95);
-  --sidebar-primary: oklch(0.7 0.17 152);
-  --sidebar-primary-foreground: oklch(0.13 0.02 150);
-  --sidebar-accent: oklch(0.27 0.018 145);
-  --sidebar-accent-foreground: oklch(0.94 0.018 95);
-  --sidebar-border: oklch(0.32 0.014 145);
-  --sidebar-ring: oklch(0.6 0.17 152);
+  --background: oklch(0.24 0.028 60);
+  --foreground: oklch(0.935 0.03 85);
+  --card: oklch(0.33 0.028 62);
+  --card-foreground: oklch(0.935 0.03 85);
+  --popover: oklch(0.33 0.028 62);
+  --popover-foreground: oklch(0.935 0.03 85);
+  --primary: oklch(0.935 0.03 85);
+  --primary-foreground: oklch(0.24 0.028 60);
+  --accent: oklch(0.53 0.17 36);
+  --accent-deep: oklch(0.45 0.15 36);
+  --accent-foreground: oklch(0.97 0.012 85);
+  --secondary: oklch(0.4 0.025 62);
+  --secondary-foreground: oklch(0.935 0.03 85);
+  --muted: oklch(0.4 0.025 62);
+  --muted-foreground: oklch(0.7 0.025 70);
+  --destructive: oklch(0.6 0.2 25);
+  --border: oklch(0.4 0.025 62);
+  --input: oklch(0.4 0.025 62);
+  --ring: oklch(0.53 0.17 36);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 76px;
+  }
   body {
     @apply bg-background text-foreground;
-    /* Subtle pixel-grid texture overlay — adds depth without image assets */
-    background-image:
-      linear-gradient(to right, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
-    background-size: 32px 32px;
+    font-family: var(--font-archivo), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
+  canvas {
+    image-rendering: pixelated;
+    display: block;
+  }
+  /* Custom scrollbar — paper-deep track, ink-soft thumb */
+  html, .sydran-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted-foreground) var(--card);
+  }
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-track { background: var(--card); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border: 3px solid var(--card);
+    border-radius: 6px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--foreground); }
 }
 
 /* ─── Custom Sydran utilities ──────────────────────────────────────── */
@@ -154,128 +160,296 @@
   image-rendering: crisp-edges;
 }
 
-/* Pixel/blocky heading font — uses mono with letter spacing to feel blocky */
-.font-pixel {
-  font-family: var(--font-geist-mono), ui-monospace, "Courier New", monospace;
-  letter-spacing: 0.04em;
-  font-weight: 700;
-  text-transform: uppercase;
+/* Wide-stretched heading — Archivo variable font at 125% stretch.
+   This is the signature typographic feel of the editorial style. */
+.font-wide {
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.font-wide-tight {
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
-/* The responsive gallery grid per the Phase 9 spec —
-   `repeat(auto-fill, minmax(180px, 1fr))` — bumped from 160px → 180px
-   so the cards have more breathing room (spacious gallery feel). */
+/* The responsive gallery grid — auto-fill with clamp cell size.
+   --cell: clamp(92px, 21vw, 148px) keeps cards readable on phones
+   but dense enough on desktops to feel like a real catalog. */
 .sydran-gallery-grid {
+  --cell: clamp(92px, 21vw, 148px);
+  --gap: 10px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(var(--cell), 1fr));
+  grid-auto-rows: var(--cell);
+  grid-auto-flow: dense;
+  gap: var(--gap);
   width: 100%;
 }
 
-/* Custom slim scrollbar for delivery queue / long lists */
 .sydran-scroll {
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-}
-.sydran-scroll::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-.sydran-scroll::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
-}
-.sydran-scroll::-webkit-scrollbar-track {
-  background: transparent;
+  scrollbar-color: var(--muted-foreground) var(--card);
 }
 
-/* Subtle block-pulse animation for status badges. */
+/* Subtle pulse animation for status indicators. */
 @keyframes sydran-pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
+  50% { opacity: 0.4; }
 }
 .sydran-pulse {
   animation: sydran-pulse 2.4s ease-in-out infinite;
 }
 
-/* ── MINECRAFT INVENTORY-SLOT BORDER ──────────────────────────────────
-   A 4-layer box-shadow stack that mimics the recessed dark border of
-   a Minecraft inventory slot. The inner highlights + outer shadow give
-   a 3D beveled look that reads as "pressable" without using borders.
+/* ── ENTRANCE ANIMATIONS ──────────────────────────────────────────────
+   Subtle rise-in for hero copy and cards. Respects reduced-motion.
 */
-.slot-border {
-  box-shadow:
-    /* outer dark border */ inset 0 0 0 2px rgba(0, 0, 0, 0.55),
-    /* inner top-left highlight (pseudo-3D) */ inset 2px 2px 0 0 rgba(255, 255, 255, 0.06),
-    /* inner bottom-right shadow (pseudo-3D) */ inset -2px -2px 0 0 rgba(0, 0, 0, 0.5),
-    /* subtle drop shadow for the whole slot */ 0 2px 6px rgba(0, 0, 0, 0.35);
+@keyframes sydran-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sydran-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.sydran-rise {
+  animation: sydran-rise 0.7s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+.sydran-fade {
+  animation: sydran-fade 0.45s cubic-bezier(0.25, 1, 0.5, 1) both;
 }
 
-.slot-border-raised {
-  /* Same as slot-border but with a brighter outer ring — used on hover/focus */
-  box-shadow:
-    inset 0 0 0 2px rgba(16, 185, 129, 0.45),
-    inset 2px 2px 0 0 rgba(255, 255, 255, 0.08),
-    inset -2px -2px 0 0 rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(16, 185, 129, 0.3),
-    0 6px 16px rgba(16, 185, 129, 0.18);
+/* ── BUTTONS ──────────────────────────────────────────────────────────
+   Sharp 3px radius, 1.5px solid ink border, dark bg + paper text.
+   Hover: accent bg. Ghost variant: transparent → invert on hover.
+*/
+.sydran-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 22px;
+  border-radius: 3px;
+  border: 1.5px solid var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+              border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+              color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  cursor: pointer;
+}
+.sydran-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-foreground);
+}
+.sydran-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.sydran-btn-ghost {
+  background: transparent;
+  color: var(--primary);
+}
+.sydran-btn-ghost:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+.sydran-btn-accent {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-foreground);
+}
+.sydran-btn-accent:hover {
+  background: var(--accent-deep);
+  border-color: var(--accent-deep);
 }
 
-/* ── ITEM-GLOW HOVER ──────────────────────────────────────────────────
-   The map-art preview inside a slot glows when hovered, mimicking how
-   Minecraft items appear highlighted in the inventory UI.
-*/
-.item-glow {
-  transition: filter 0.18s ease, transform 0.18s ease;
-}
-.item-glow:hover {
-  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.55))
-          drop-shadow(0 0 12px rgba(16, 185, 129, 0.25));
+/* ── PRICE TAG (paper chip with subtle shadow) ─────────────────────── */
+.sydran-price-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 2px;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 1px oklch(0.24 0.028 60 / 0.15);
 }
 
-/* ── OAK-PLANK PANEL ──────────────────────────────────────────────────
-   A subtle wood-grain feel for elevated card sections.
+/* ── NEW BADGE ─────────────────────────────────────────────────────── */
+.sydran-new-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 2px;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  font-size: 11px;
+  font-weight: 800;
+  font-stretch: 125%;
+  letter-spacing: 0.04em;
+}
+
+/* ── OUTLINE CARD ────────────────────────────────────────────────────
+   The core card style — thin 1.5px transparent outline that becomes
+   ink on hover. Selected state: 3px solid accent outline.
 */
-.oak-panel {
+.sydran-card {
+  position: relative;
+  cursor: pointer;
+  background: var(--card);
+  outline: 1.5px solid transparent;
+  outline-offset: 0;
+  transition: outline-color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.sydran-card:hover {
+  outline-color: var(--primary);
+}
+.sydran-card-selected {
+  outline: 3px solid var(--accent);
+}
+
+/* ── CHECK CIRCLE (selected indicator) ─────────────────────────────── */
+.sydran-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  transform: scale(0);
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.sydran-card-selected .sydran-check {
+  transform: scale(1);
+}
+
+/* ── ZOOM BUTTON (hover) ───────────────────────────────────────────── */
+.sydran-zoom {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 3px;
+  background: var(--background);
+  color: var(--foreground);
+  box-shadow: 0 0 0 1px oklch(0.24 0.028 60 / 0.15);
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.15s cubic-bezier(0.25, 1, 0.5, 1),
+              transform 0.15s cubic-bezier(0.25, 1, 0.5, 1),
+              background 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.sydran-card:hover .sydran-zoom,
+.sydran-card:focus-within .sydran-zoom {
+  opacity: 1;
+  transform: none;
+}
+.sydran-zoom:hover {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+@media (hover: none) {
+  .sydran-zoom { opacity: 1; transform: none; }
+}
+
+/* ── SELECTION TRAY (slide-up bottom bar) ──────────────────────────── */
+.sydran-tray {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 10px 10px 22px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 4px;
+  box-shadow: 0 12px 32px oklch(0.24 0.028 60 / 0.28);
+  transform: translate(-50%, calc(100% + 48px));
+  visibility: hidden;
+  transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1),
+              visibility 0s linear 0.35s;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+}
+.sydran-tray-open {
+  transform: translate(-50%, 0);
+  visibility: visible;
+  transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), visibility 0s;
+}
+
+/* ── HERO VIGNETTE (subtle gradient for text readability over art) ── */
+.sydran-hero-overlay {
   background:
-    /* horizontal plank seams */
-    linear-gradient(to bottom, transparent calc(20% - 1px), rgba(0, 0, 0, 0.18) 20%, transparent calc(20% + 1px)),
-    /* vertical noise */
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.02) 0 2px, transparent 2px 6px),
-    /* base color */
-    var(--card);
-  background-size: 100% 100%, 6px 6px, 100% 100%;
+    linear-gradient(to bottom, transparent 0%, oklch(0.24 0.028 60 / 0.55) 100%);
 }
 
-/* ── PIXEL COIN PRICE TAG ────────────────────────────────────────────
-   Gold-coin look for price chips: gold gradient + dark inset border.
-*/
-.coin-tag {
-  background:
-    linear-gradient(180deg, oklch(0.85 0.16 75) 0%, oklch(0.7 0.16 75) 100%);
-  color: oklch(0.18 0.04 75);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
-  box-shadow:
-    inset 0 0 0 1px oklch(0.55 0.12 75),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    0 1px 3px rgba(0, 0, 0, 0.4);
+/* ── DARK SECTION (How it works / Recent orders dark band) ─────────── */
+.sydran-dark-section {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.sydran-dark-section h2,
+.sydran-dark-section h3 {
+  color: var(--primary-foreground);
+}
+.sydran-dark-section p {
+  color: oklch(0.8 0.025 80);
 }
 
-/* ── STATUS PILLS ──────────────────────────────────────────────────── */
-.status-pill {
-  border: 1px solid currentColor;
-  box-shadow: inset 0 -2px 0 currentColor, 0 1px 2px rgba(0, 0, 0, 0.3);
+/* ── STEP NUMBER (large, accent-colored, leading-zero) ────────────── */
+.sydran-step-num {
+  font-stretch: 125%;
+  font-weight: 800;
+  font-size: 28px;
+  color: var(--accent);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ── CARD HOVER LIFT ───────────────────────────────────────────────── */
-.sydran-card-hover {
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-.sydran-card-hover:hover {
-  transform: translateY(-3px);
+/* ── INLINE CODE ───────────────────────────────────────────────────── */
+.sydran-code {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: oklch(0.33 0.028 62);
+  color: var(--primary-foreground);
 }
 
-/* Outer wrapper for the app — guarantees the footer sits at the bottom. */
+/* ── STATUS LINE (online/offline dot indicator) ────────────────────── */
+.sydran-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+}
+.sydran-status-dot-online {
+  background: oklch(0.62 0.15 150);
+}
+.sydran-status-dot-offline {
+  background: var(--accent);
+}
+
+/* Outer wrapper — guarantees the footer sits at the bottom. */
 .sydran-app-shell {
   min-height: 100vh;
   display: flex;
@@ -285,11 +459,10 @@
   flex: 1 1 auto;
 }
 
-/* ── HERO BACKGROUND ────────────────────────────────────────────────
-   Used by the gallery hero — a dark vignette over the big map splash.
-*/
-.hero-vignette {
-  background:
-    radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.55) 100%),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.75) 100%);
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+  html { scroll-behavior: auto; }
 }
