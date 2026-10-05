@@ -157,7 +157,7 @@ const SEED_ORDERS: SeedOrder[] = [
     quantity: 2,
     status: 'delivered',
     deliveredBy: 'PixelPusher',
-    note: 'Delivered to player base coordinates -123, 64, 456.',
+    note: 'Delivered via /order.',
   },
   {
     player: 'BlockBuilder99',

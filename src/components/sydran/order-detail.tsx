@@ -386,6 +386,43 @@ export function OrderDetail({ orderCode }: { orderCode: string }) {
           </div>
         )}
 
+        {/* ── Create /order instructions — shown after payment is matched ──
+            On DonutSMP, customers create an /order for the number of maps
+            they bought at $1 each. The delivery member delivers the maps
+            directly into that order — no base coordinates needed. */}
+        {(order.status === 'paid' || order.status === 'claimed') && (
+          <div className="rounded-md border border-border bg-muted/30 p-3 text-sm">
+            <div className="mb-2 flex items-center gap-2 font-medium">
+              <Package className="h-4 w-4" />
+              Create your in-game order
+            </div>
+            <p className="text-xs text-muted-foreground">
+              After your payment is verified, create an in-game order for{' '}
+              <strong className="text-foreground">{totalMaps} {totalMaps === 1 ? 'map' : 'maps'}</strong>{' '}
+              at <strong className="text-foreground">$1 each</strong>. The delivery
+              member will deliver the maps directly into your order.
+            </p>
+            <div className="mt-2 flex items-center justify-between gap-3 rounded-[3px] border-[1.5px] border-primary bg-primary p-2.5 text-primary-foreground">
+              <code className="font-mono text-sm">/order {order.player}</code>
+              <button
+                onClick={() => {
+                  const cmd = `/order ${order.player}`;
+                  navigator.clipboard.writeText(cmd);
+                  toast({ title: 'Copied', description: cmd });
+                }}
+                className="inline-flex items-center gap-1.5 rounded-[3px] border border-[oklch(0.5_0.025_65)] px-2.5 py-1 text-xs hover:border-primary-foreground"
+              >
+                <Copy className="h-3 w-3" />
+                Copy
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Run this in-game after claiming the order from in-game chat.
+              The maps will appear in your /order inventory.
+            </p>
+          </div>
+        )}
+
         {order.status === 'paid' && (
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">

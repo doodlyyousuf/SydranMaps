@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Sydran Maps — Minecraft Map-Art Store",
   description:
-    "Sydran Maps is a Minecraft map-art marketplace. Pick a piece, pay in-game, and the maps are delivered to your base.",
+    "Sydran Maps is a Minecraft map-art marketplace. Pick a piece, pay in-game, and the maps are delivered to your in-game /order.",
   keywords: [
     "Sydran Maps",
     "Minecraft map art",

@@ -46,7 +46,7 @@ const HOW_STEPS = [
   },
   {
     title: 'Pay in-game & receive',
-    body: 'Send the exact amount in-game. The payment matcher detects it automatically, a delivery member claims your order, and the maps are delivered to your base. No bots, ever.',
+    body: 'Send the exact amount in-game. The payment matcher detects it automatically. Then create an /order for the number of maps at $1 each — a delivery member claims your order and delivers the maps directly in your /order. No bots, ever.',
   },
 ];
 
@@ -164,10 +164,10 @@ export function GalleryView() {
       <section className="grid gap-8 px-[clamp(16px,5vw,64px)] pt-[clamp(32px,7vw,96px)] pb-[clamp(56px,9vw,128px)] md:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] md:items-center md:gap-[clamp(32px,6vw,96px)]">
         <div className="sydran-rise">
           <h1 className="font-wide-tight text-[clamp(40px,6.4vw,92px)] leading-[0.98]">
-            Map art, delivered to your <em className="not-italic text-accent">base</em>.
+            Map art, delivered to your <em className="not-italic text-accent">/order</em>.
           </h1>
           <p className="mt-7 max-w-[46ch] text-[clamp(17px,1.5vw,20px)] leading-relaxed text-muted-foreground">
-            Pick a piece, pay in-game, and the maps land in your Minecraft base. Every map is built fresh from the original — what you see is what goes on your wall.
+            Pick a piece, pay in-game, and the maps land in your in-game /order. Every map is built fresh from the original — what you see is what goes on your wall.
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
             <a
@@ -262,7 +262,7 @@ export function GalleryView() {
               Four steps, all in-game.
             </h2>
             <p className="mt-4.5 max-w-[36ch] leading-relaxed text-[oklch(0.8_0.025_80)]">
-              No Discord middleman, no automated bots. Payment is matched automatically through the in-game chat API, and a real delivery member brings the maps to your base.
+              No Discord middleman, no automated bots. Payment is matched automatically through the in-game chat API, and the delivery member drops the maps directly into your in-game /order.
             </p>
           </div>
           <ol className="m-0 list-none p-0">

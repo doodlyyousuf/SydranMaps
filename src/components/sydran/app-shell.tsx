@@ -65,7 +65,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         toast({
           title: 'Welcome to Sydran Maps',
           description:
-            'Browse the catalog, click cards to select, then check out. The maps are delivered to your Minecraft base.',
+            'Browse the catalog, click cards to select, then check out. The maps are delivered to your in-game /order.',
         });
       }, 400);
     }
