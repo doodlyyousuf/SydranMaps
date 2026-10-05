@@ -23,7 +23,7 @@ import {
   categoryLabel,
   type ProductView,
 } from '@/lib/sydran';
-import { generateTilePreviewSvg } from '@/lib/pixel-art';
+import { generateTilePreviewSvg, generatePreviewSvg } from '@/lib/pixel-art';
 import { PixelArt } from './pixel-art';
 import { useRouter } from './router';
 import { useCart } from './use-cart';
@@ -91,6 +91,24 @@ export function ProductDetail({ productCode }: { productCode: string }) {
       );
     }
     return m;
+  }, [data]);
+
+  // Generate the full multi-tile panorama on the client (only for large
+  // maps). For 1×1 products we just use the stored thumbnail SVG. This
+  // keeps the gallery API small (each product's stored previewSvg is a
+  // single-tile thumbnail) while still showing a real panorama on the
+  // detail page.
+  const panoramaSvg = useMemo(() => {
+    if (!data) return '';
+    const { product } = data;
+    if (product.width <= 1 && product.height <= 1) return product.previewSvg;
+    return generatePreviewSvg({
+      name: product.name,
+      category: product.category,
+      width: product.width,
+      height: product.height,
+      showTileGrid: true,
+    });
   }, [data]);
 
   if (loading) {
@@ -161,7 +179,7 @@ export function ProductDetail({ productCode }: { productCode: string }) {
         <div className="space-y-3">
           <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-lg">
             <PixelArt
-              svg={product.previewSvg}
+              svg={panoramaSvg || product.previewSvg}
               alt={product.name}
               aspect={isLarge ? 'wide' : 'square'}
             />
@@ -255,12 +273,11 @@ export function ProductDetail({ productCode }: { productCode: string }) {
                   Price
                 </div>
                 <div
-                  className="font-pixel text-3xl font-bold"
-                  style={{ color: product.accentColor }}
+                  className="coin-tag inline-block px-3 py-1.5 font-pixel text-2xl font-bold sm:text-3xl"
                 >
                   {formatPrice(product.price)}
                 </div>
-                <div className="mt-0.5 text-xs text-muted-foreground">
+                <div className="mt-1 text-xs text-muted-foreground">
                   {formatPriceFull(product.price)}
                 </div>
               </div>

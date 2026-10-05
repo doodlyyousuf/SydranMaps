@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import {
-  generatePreviewSvg,
+  generateThumbnailSvg,
   generateTileHash,
   generateProductHash,
   generateTileData,
@@ -132,12 +132,11 @@ export async function POST(req: NextRequest) {
   const code = nextProductCode(existingCodes.map((p) => p.code));
   const accentColor = accentFor(category);
 
-  const previewSvg = generatePreviewSvg({
+  // Store thumbnail SVG for gallery cards. The full multi-tile panorama
+  // is generated client-side on the product-detail page.
+  const previewSvg = generateThumbnailSvg({
     name: productName,
     category,
-    width,
-    height,
-    showTileGrid: width > 1 || height > 1,
   });
 
   const product = await db.product.create({

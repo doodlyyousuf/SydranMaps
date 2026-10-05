@@ -43,82 +43,92 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* ─── Sydran Maps palette ───────────────────────────────────────────────
-   Deep obsidian + warm emerald/amber. No blue, no indigo.
-   The accent color is emerald (#10b981), which evokes Minecraft grass
-   blocks and gives the UI a distinct identity versus default shadcn dark.
+/* ─── Sydran Maps — Minecraft inventory-slot theme ────────────────────
+   Palette: emerald + gold on warm dark moss, with parchment text.
+   Inspired by Minecraft inventory slots: beveled dark borders, item-glow
+   on hover, oak-plank panels. No blue, no indigo.
 */
 :root {
-  --radius: 0.625rem;
-  /* Light mode (rarely used here, but kept for accessibility) */
-  --background: oklch(0.985 0.005 120);
-  --foreground: oklch(0.18 0.01 150);
+  --radius: 0.25rem; /* tight, blocky */
+
+  /* Light mode (rarely used; dark is default) */
+  --background: oklch(0.97 0.008 100);
+  --foreground: oklch(0.18 0.01 80);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.01 150);
+  --card-foreground: oklch(0.18 0.01 80);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.01 150);
-  --primary: oklch(0.45 0.13 155);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.01 130);
-  --secondary-foreground: oklch(0.25 0.01 150);
-  --muted: oklch(0.96 0.005 120);
-  --muted-foreground: oklch(0.5 0.01 140);
-  --accent: oklch(0.7 0.13 80);
-  --accent-foreground: oklch(0.2 0.02 80);
+  --popover-foreground: oklch(0.18 0.01 80);
+  --primary: oklch(0.55 0.16 150);
+  --primary-foreground: oklch(0.99 0.005 100);
+  --secondary: oklch(0.93 0.01 100);
+  --secondary-foreground: oklch(0.2 0.02 80);
+  --muted: oklch(0.94 0.005 100);
+  --muted-foreground: oklch(0.45 0.01 80);
+  --accent: oklch(0.72 0.16 70);
+  --accent-foreground: oklch(0.2 0.04 70);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.01 130);
-  --input: oklch(0.92 0.01 130);
-  --ring: oklch(0.5 0.13 155);
+  --border: oklch(0.85 0.01 80);
+  --input: oklch(0.92 0.01 80);
+  --ring: oklch(0.5 0.16 150);
   --chart-1: oklch(0.65 0.18 50);
   --chart-2: oklch(0.6 0.16 160);
   --chart-3: oklch(0.55 0.13 30);
   --chart-4: oklch(0.7 0.18 85);
   --chart-5: oklch(0.6 0.2 320);
-  --sidebar: oklch(0.985 0.005 120);
-  --sidebar-foreground: oklch(0.18 0.01 150);
-  --sidebar-primary: oklch(0.45 0.13 155);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.96 0.01 130);
-  --sidebar-accent-foreground: oklch(0.25 0.01 150);
-  --sidebar-border: oklch(0.92 0.01 130);
-  --sidebar-ring: oklch(0.5 0.13 155);
+  --sidebar: oklch(0.97 0.008 100);
+  --sidebar-foreground: oklch(0.18 0.01 80);
+  --sidebar-primary: oklch(0.55 0.16 150);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.93 0.01 100);
+  --sidebar-accent-foreground: oklch(0.2 0.02 80);
+  --sidebar-border: oklch(0.85 0.01 80);
+  --sidebar-ring: oklch(0.5 0.16 150);
 }
 
 .dark {
-  /* Obsidian background — slight warm-green tinge, not pure black */
-  --background: oklch(0.155 0.008 155);
-  --foreground: oklch(0.97 0.005 120);
-  --card: oklch(0.205 0.012 155);
-  --card-foreground: oklch(0.97 0.005 120);
-  --popover: oklch(0.205 0.012 155);
-  --popover-foreground: oklch(0.97 0.005 120);
-  /* Primary = emerald, evokes Minecraft grass blocks */
-  --primary: oklch(0.68 0.15 155);
-  --primary-foreground: oklch(0.16 0.02 155);
-  --secondary: oklch(0.27 0.014 155);
-  --secondary-foreground: oklch(0.97 0.005 120);
-  --muted: oklch(0.245 0.012 155);
-  --muted-foreground: oklch(0.72 0.012 140);
-  /* Accent = amber/gold — for prices, treasure feel */
-  --accent: oklch(0.78 0.14 75);
-  --accent-foreground: oklch(0.2 0.04 75);
+  /* Deep warm moss background — almost black with green tinge */
+  --background: oklch(0.155 0.012 145);
+  /* Parchment foreground — warm cream, not pure white */
+  --foreground: oklch(0.94 0.018 95);
+
+  /* Card: dark moss panel — slightly lifted from background */
+  --card: oklch(0.21 0.014 145);
+  --card-foreground: oklch(0.94 0.018 95);
+  --popover: oklch(0.21 0.014 145);
+  --popover-foreground: oklch(0.94 0.018 95);
+
+  /* Primary: Minecraft grass emerald */
+  --primary: oklch(0.7 0.17 152);
+  --primary-foreground: oklch(0.13 0.02 150);
+
+  /* Accent: warm gold (treasure, prices) */
+  --accent: oklch(0.82 0.16 75);
+  --accent-foreground: oklch(0.18 0.04 75);
+
+  --secondary: oklch(0.27 0.018 145);
+  --secondary-foreground: oklch(0.94 0.018 95);
+  --muted: oklch(0.24 0.012 145);
+  --muted-foreground: oklch(0.7 0.018 100);
+
   --destructive: oklch(0.65 0.21 25);
-  --border: oklch(0.32 0.012 155);
-  --input: oklch(0.26 0.012 155);
-  --ring: oklch(0.55 0.15 155);
-  --chart-1: oklch(0.7 0.15 155);
-  --chart-2: oklch(0.78 0.14 75);
-  --chart-3: oklch(0.62 0.2 320);
+  --border: oklch(0.32 0.014 145);
+  --input: oklch(0.26 0.014 145);
+  --ring: oklch(0.6 0.17 152);
+
+  --chart-1: oklch(0.7 0.17 152);
+  --chart-2: oklch(0.82 0.16 75);
+  --chart-3: oklch(0.65 0.21 25);
   --chart-4: oklch(0.72 0.16 220);
   --chart-5: oklch(0.65 0.18 30);
-  --sidebar: oklch(0.18 0.01 155);
-  --sidebar-foreground: oklch(0.97 0.005 120);
-  --sidebar-primary: oklch(0.68 0.15 155);
-  --sidebar-primary-foreground: oklch(0.16 0.02 155);
-  --sidebar-accent: oklch(0.27 0.014 155);
-  --sidebar-accent-foreground: oklch(0.97 0.005 120);
-  --sidebar-border: oklch(0.32 0.012 155);
-  --sidebar-ring: oklch(0.55 0.15 155);
+
+  --sidebar: oklch(0.18 0.012 145);
+  --sidebar-foreground: oklch(0.94 0.018 95);
+  --sidebar-primary: oklch(0.7 0.17 152);
+  --sidebar-primary-foreground: oklch(0.13 0.02 150);
+  --sidebar-accent: oklch(0.27 0.018 145);
+  --sidebar-accent-foreground: oklch(0.94 0.018 95);
+  --sidebar-border: oklch(0.32 0.014 145);
+  --sidebar-ring: oklch(0.6 0.17 152);
 }
 
 @layer base {
@@ -127,6 +137,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Subtle pixel-grid texture overlay — adds depth without image assets */
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
 }
 
@@ -139,19 +154,21 @@
   image-rendering: crisp-edges;
 }
 
-/* Blocky "minecraft text" feel for headings. */
+/* Pixel/blocky heading font — uses mono with letter spacing to feel blocky */
 .font-pixel {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  letter-spacing: 0.02em;
+  font-family: var(--font-geist-mono), ui-monospace, "Courier New", monospace;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 /* The responsive gallery grid per the Phase 9 spec —
-   `repeat(auto-fill, minmax(160px, 1fr))`. Goes wide on big screens
-   and stacks naturally on phones without media queries. */
+   `repeat(auto-fill, minmax(180px, 1fr))` — bumped from 160px → 180px
+   so the cards have more breathing room (spacious gallery feel). */
 .sydran-gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
   width: 100%;
 }
 
@@ -181,12 +198,81 @@
   animation: sydran-pulse 2.4s ease-in-out infinite;
 }
 
-/* Card hover lift. */
+/* ── MINECRAFT INVENTORY-SLOT BORDER ──────────────────────────────────
+   A 4-layer box-shadow stack that mimics the recessed dark border of
+   a Minecraft inventory slot. The inner highlights + outer shadow give
+   a 3D beveled look that reads as "pressable" without using borders.
+*/
+.slot-border {
+  box-shadow:
+    /* outer dark border */ inset 0 0 0 2px rgba(0, 0, 0, 0.55),
+    /* inner top-left highlight (pseudo-3D) */ inset 2px 2px 0 0 rgba(255, 255, 255, 0.06),
+    /* inner bottom-right shadow (pseudo-3D) */ inset -2px -2px 0 0 rgba(0, 0, 0, 0.5),
+    /* subtle drop shadow for the whole slot */ 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.slot-border-raised {
+  /* Same as slot-border but with a brighter outer ring — used on hover/focus */
+  box-shadow:
+    inset 0 0 0 2px rgba(16, 185, 129, 0.45),
+    inset 2px 2px 0 0 rgba(255, 255, 255, 0.08),
+    inset -2px -2px 0 0 rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(16, 185, 129, 0.3),
+    0 6px 16px rgba(16, 185, 129, 0.18);
+}
+
+/* ── ITEM-GLOW HOVER ──────────────────────────────────────────────────
+   The map-art preview inside a slot glows when hovered, mimicking how
+   Minecraft items appear highlighted in the inventory UI.
+*/
+.item-glow {
+  transition: filter 0.18s ease, transform 0.18s ease;
+}
+.item-glow:hover {
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.55))
+          drop-shadow(0 0 12px rgba(16, 185, 129, 0.25));
+}
+
+/* ── OAK-PLANK PANEL ──────────────────────────────────────────────────
+   A subtle wood-grain feel for elevated card sections.
+*/
+.oak-panel {
+  background:
+    /* horizontal plank seams */
+    linear-gradient(to bottom, transparent calc(20% - 1px), rgba(0, 0, 0, 0.18) 20%, transparent calc(20% + 1px)),
+    /* vertical noise */
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.02) 0 2px, transparent 2px 6px),
+    /* base color */
+    var(--card);
+  background-size: 100% 100%, 6px 6px, 100% 100%;
+}
+
+/* ── PIXEL COIN PRICE TAG ────────────────────────────────────────────
+   Gold-coin look for price chips: gold gradient + dark inset border.
+*/
+.coin-tag {
+  background:
+    linear-gradient(180deg, oklch(0.85 0.16 75) 0%, oklch(0.7 0.16 75) 100%);
+  color: oklch(0.18 0.04 75);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  box-shadow:
+    inset 0 0 0 1px oklch(0.55 0.12 75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* ── STATUS PILLS ──────────────────────────────────────────────────── */
+.status-pill {
+  border: 1px solid currentColor;
+  box-shadow: inset 0 -2px 0 currentColor, 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ── CARD HOVER LIFT ───────────────────────────────────────────────── */
 .sydran-card-hover {
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 .sydran-card-hover:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
 /* Outer wrapper for the app — guarantees the footer sits at the bottom. */
@@ -197,4 +283,13 @@
 }
 .sydran-app-shell > main {
   flex: 1 1 auto;
+}
+
+/* ── HERO BACKGROUND ────────────────────────────────────────────────
+   Used by the gallery hero — a dark vignette over the big map splash.
+*/
+.hero-vignette {
+  background:
+    radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.55) 100%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.75) 100%);
 }

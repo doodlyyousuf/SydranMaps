@@ -9,7 +9,7 @@
  */
 import { PrismaClient } from '@prisma/client';
 import {
-  generatePreviewSvg,
+  generateThumbnailSvg,
   generateTileHash,
   generateProductHash,
   generateTileData,
@@ -218,13 +218,13 @@ async function main() {
       height: p.height,
     });
 
-    const previewSvg = generatePreviewSvg({
+    // Use the thumbnail SVG (compact single-tile motif) for the gallery
+    // card preview. The product detail page generates the full multi-tile
+    // panorama on demand via generatePreviewSvg().
+    const previewSvg = generateThumbnailSvg({
       name: p.name,
       category: p.category,
-      width: p.width,
-      height: p.height,
       seed: i * 17 + 7,
-      showTileGrid: p.width > 1 || p.height > 1,
     });
 
     const product = await db.product.create({

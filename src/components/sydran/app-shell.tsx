@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 import { useRouter, routeToHash } from './router';
 import { useCart } from './use-cart';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Map,
   ShoppingCart,
@@ -49,13 +48,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="sydran-app-shell">
       {/* ── Header ──────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+      <header className="sticky top-0 z-40 border-b-2 border-background/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
           <Link
             href={routeToHash({ name: 'gallery' })}
             className="group flex items-center gap-2.5"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground shadow-inner">
+            {/* Minecraft-style pixel logo block */}
+            <span className="grid h-9 w-9 place-items-center bg-primary text-primary-foreground slot-border group-hover:slot-border-raised">
               <Map className="h-5 w-5" />
             </span>
             <div className="leading-tight">
@@ -68,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </Link>
 
-          {/* Desktop nav */}
+          {/* Desktop nav — slot-styled buttons */}
           <nav className="ml-6 hidden items-center gap-1 md:flex">
             {NAV.map((item) => {
               const Icon = item.icon;
@@ -78,13 +78,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   key={item.name}
                   onClick={() => navigate({ name: item.name })}
                   className={cn(
-                    'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                    'inline-flex items-center gap-1.5 px-3 py-1.5 font-pixel text-[11px] font-bold uppercase tracking-wider transition-colors slot-border',
                     active
-                      ? 'bg-primary/15 text-primary'
-                      : 'text-muted-foreground hover:bg-accent/10 hover:text-foreground'
+                      ? 'bg-primary/15 text-primary hover:slot-border-raised'
+                      : 'bg-card/60 text-muted-foreground hover:text-foreground hover:slot-border-raised'
                   )}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-3.5 w-3.5" />
                   {item.label}
                 </button>
               );
@@ -95,26 +95,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Button
               variant="ghost"
               size="sm"
-              className="relative gap-1.5"
+              className="relative gap-1.5 slot-border hover:slot-border-raised"
               onClick={() => navigate({ name: 'cart' })}
               aria-label={`Cart with ${count} items`}
             >
               <ShoppingCart className="h-4 w-4" />
-              <span className="hidden sm:inline">Cart</span>
+              <span className="hidden font-pixel text-[11px] uppercase tracking-wider sm:inline">Cart</span>
               {hydrated && count > 0 && (
-                <Badge
-                  variant="default"
-                  className="ml-1 h-5 min-w-5 justify-center px-1.5 text-xs"
-                >
+                <span className="coin-tag ml-1 inline-flex h-5 min-w-5 items-center justify-center px-1.5 font-pixel text-[10px] font-bold">
                   {count}
-                </Badge>
+                </span>
               )}
             </Button>
           </div>
         </div>
 
         {/* Mobile nav */}
-        <nav className="flex items-center gap-1 overflow-x-auto border-t border-border px-4 py-2 md:hidden sydran-scroll">
+        <nav className="flex items-center gap-1 overflow-x-auto border-t border-background/80 px-4 py-2 md:hidden sydran-scroll">
           {NAV.map((item) => {
             const Icon = item.icon;
             const active = route.name === item.name;
@@ -123,13 +120,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={item.name}
                 onClick={() => navigate({ name: item.name })}
                 className={cn(
-                  'inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                  'inline-flex shrink-0 items-center gap-1.5 px-3 py-1.5 font-pixel text-[11px] font-bold uppercase tracking-wider transition-colors slot-border',
                   active
                     ? 'bg-primary/15 text-primary'
-                    : 'text-muted-foreground hover:bg-accent/10 hover:text-foreground'
+                    : 'bg-card/60 text-muted-foreground hover:text-foreground'
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-3.5 w-3.5" />
                 {item.label}
               </button>
             );
@@ -141,11 +138,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main>{children}</main>
 
       {/* ── Footer ────────────────────────────────────────────────── */}
-      <footer className="mt-12 border-t border-border bg-background/60">
+      <footer className="mt-12 border-t-2 border-background/80 bg-background/60">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Map className="h-4 w-4" />
-            <span>Sydran Maps · Map-art marketplace</span>
+            <span className="grid h-6 w-6 place-items-center bg-primary text-primary-foreground slot-border">
+              <Map className="h-3 w-3" />
+            </span>
+            <span className="font-pixel text-[11px] uppercase tracking-wider">Sydran Maps</span>
+            <span className="opacity-50">·</span>
+            <span>Map-art marketplace</span>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             <span>Phases 1–9 redesign</span>

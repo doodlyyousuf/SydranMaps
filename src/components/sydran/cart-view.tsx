@@ -101,7 +101,7 @@ export function CartView() {
                 <div className="text-xs uppercase tracking-wider text-muted-foreground">
                   Amount due
                 </div>
-                <div className="font-pixel text-xl font-bold text-accent">
+                <div className="coin-tag inline-block px-2.5 py-1 font-pixel text-lg font-bold">
                   {formatPrice(placedOrder.totalAmount)}
                 </div>
               </div>
@@ -250,7 +250,7 @@ export function CartView() {
             </div>
             <div className="mt-2 flex items-center justify-between border-t border-border pt-2">
               <span className="text-sm font-semibold">Total</span>
-              <span className="font-pixel text-xl font-bold text-accent">
+              <span className="coin-tag inline-block px-2.5 py-1 font-pixel text-lg font-bold">
                 {formatPrice(total)}
               </span>
             </div>

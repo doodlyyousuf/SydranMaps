@@ -185,7 +185,7 @@ export function OrderDetail({ orderCode }: { orderCode: string }) {
             <div className="text-xs uppercase tracking-wider text-muted-foreground">
               Total
             </div>
-            <div className="font-pixel text-2xl font-bold text-accent">
+            <div className="coin-tag inline-block px-2.5 py-1 font-pixel text-xl font-bold">
               {formatPrice(order.totalAmount)}
             </div>
             <div className="text-[10px] text-muted-foreground">
