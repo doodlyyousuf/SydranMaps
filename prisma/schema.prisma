@@ -1,0 +1,94 @@
+// Sydran Maps — full data model covering Phases 1–9
+// Product -> MapTile architecture supports 1x1, 2x2, 5x3, 10x6, etc.
+// Orders have full lifecycle: awaiting_payment -> paid -> claimed -> delivered
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id           String      @id @default(cuid())
+  code         String      @unique // PRD-001 friendly code
+  name         String
+  description  String?
+  category     String
+  price        Int // in Minecraft coins, e.g. 1500000 = $1.5M
+  width        Int // tile columns (e.g. 10 for 10x6)
+  height       Int // tile rows  (e.g. 6 for 10x6)
+  mapHash      String?     @unique // SHA-256 fingerprint of all tile data, used for duplicate detection
+  previewSvg   String      // SVG preview string (procedurally generated pixel art)
+  accentColor  String      // hex color used in card UI
+  tags         String?     // comma-separated tags
+  status       String      @default("active") // active | blocked_duplicate | archived
+  blockedBy    String?     // existing product code that this duplicate matches
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  tiles        MapTile[]
+  orderItems   OrderItem[]
+}
+
+// Each tile is a single Minecraft map inside a larger product.
+// A 10x6 product has 60 MapTile rows with posX in [0..9], posY in [0..5].
+model MapTile {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  posX       Int // 0..(width-1)
+  posY       Int // 0..(height-1)
+  tileHash   String   // SHA-256 of the individual tile color data
+  tileData   String   // 128x128 pixel color grid encoded as compact string
+  createdAt  DateTime @default(now())
+
+  @@unique([productId, posX, posY])
+  @@index([tileHash])
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  code          String      @unique // MAP-1042 friendly code used in URL + Discord
+  player        String      // Minecraft username of buyer
+  totalAmount   Int // total coins
+  status        String      @default("awaiting_payment") // awaiting_payment | paid | claimed | delivered | cancelled
+  paymentRef    String?     // matched in-game payment message id / amount
+  paymentMatchedAt DateTime?
+  claimedBy     String?     // delivery member username
+  claimedAt     DateTime?
+  deliveredBy   String?     // delivery member username
+  deliveredAt   DateTime?
+  note          String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  items         OrderItem[]
+}
+
+model OrderItem {
+  id         String  @id @default(cuid())
+  orderId    String
+  order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product @relation(fields: [productId], references: [id])
+  quantity   Int     @default(1)
+  unitPrice  Int
+  width      Int // snapshot of product dimensions at order time
+  height     Int
+  totalMaps  Int // width * height * quantity, snapshot for fast delivery math
+}
+
+// Live Fabric mod configuration. Single row (id="default").
+// Toggled by /sydran setprice, /sydran setcategory, /sydran setsize, /sydran setduplicate
+model ModConfig {
+  id              String    @id @default("default")
+  price           Int       @default(50000)
+  category        String    @default("general")
+  mapWidth        Int       @default(1)
+  mapHeight       Int       @default(1)
+  duplicateCheck  Boolean   @default(true)
+  apiConnected    Boolean   @default(true)
+  lastSyncAt      DateTime?
+  lastSyncStatus  String?
+}

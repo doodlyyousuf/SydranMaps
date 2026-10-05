@@ -1,0 +1,200 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ─── Sydran Maps palette ───────────────────────────────────────────────
+   Deep obsidian + warm emerald/amber. No blue, no indigo.
+   The accent color is emerald (#10b981), which evokes Minecraft grass
+   blocks and gives the UI a distinct identity versus default shadcn dark.
+*/
+:root {
+  --radius: 0.625rem;
+  /* Light mode (rarely used here, but kept for accessibility) */
+  --background: oklch(0.985 0.005 120);
+  --foreground: oklch(0.18 0.01 150);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.01 150);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.01 150);
+  --primary: oklch(0.45 0.13 155);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0.01 130);
+  --secondary-foreground: oklch(0.25 0.01 150);
+  --muted: oklch(0.96 0.005 120);
+  --muted-foreground: oklch(0.5 0.01 140);
+  --accent: oklch(0.7 0.13 80);
+  --accent-foreground: oklch(0.2 0.02 80);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.92 0.01 130);
+  --input: oklch(0.92 0.01 130);
+  --ring: oklch(0.5 0.13 155);
+  --chart-1: oklch(0.65 0.18 50);
+  --chart-2: oklch(0.6 0.16 160);
+  --chart-3: oklch(0.55 0.13 30);
+  --chart-4: oklch(0.7 0.18 85);
+  --chart-5: oklch(0.6 0.2 320);
+  --sidebar: oklch(0.985 0.005 120);
+  --sidebar-foreground: oklch(0.18 0.01 150);
+  --sidebar-primary: oklch(0.45 0.13 155);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.96 0.01 130);
+  --sidebar-accent-foreground: oklch(0.25 0.01 150);
+  --sidebar-border: oklch(0.92 0.01 130);
+  --sidebar-ring: oklch(0.5 0.13 155);
+}
+
+.dark {
+  /* Obsidian background — slight warm-green tinge, not pure black */
+  --background: oklch(0.155 0.008 155);
+  --foreground: oklch(0.97 0.005 120);
+  --card: oklch(0.205 0.012 155);
+  --card-foreground: oklch(0.97 0.005 120);
+  --popover: oklch(0.205 0.012 155);
+  --popover-foreground: oklch(0.97 0.005 120);
+  /* Primary = emerald, evokes Minecraft grass blocks */
+  --primary: oklch(0.68 0.15 155);
+  --primary-foreground: oklch(0.16 0.02 155);
+  --secondary: oklch(0.27 0.014 155);
+  --secondary-foreground: oklch(0.97 0.005 120);
+  --muted: oklch(0.245 0.012 155);
+  --muted-foreground: oklch(0.72 0.012 140);
+  /* Accent = amber/gold — for prices, treasure feel */
+  --accent: oklch(0.78 0.14 75);
+  --accent-foreground: oklch(0.2 0.04 75);
+  --destructive: oklch(0.65 0.21 25);
+  --border: oklch(0.32 0.012 155);
+  --input: oklch(0.26 0.012 155);
+  --ring: oklch(0.55 0.15 155);
+  --chart-1: oklch(0.7 0.15 155);
+  --chart-2: oklch(0.78 0.14 75);
+  --chart-3: oklch(0.62 0.2 320);
+  --chart-4: oklch(0.72 0.16 220);
+  --chart-5: oklch(0.65 0.18 30);
+  --sidebar: oklch(0.18 0.01 155);
+  --sidebar-foreground: oklch(0.97 0.005 120);
+  --sidebar-primary: oklch(0.68 0.15 155);
+  --sidebar-primary-foreground: oklch(0.16 0.02 155);
+  --sidebar-accent: oklch(0.27 0.014 155);
+  --sidebar-accent-foreground: oklch(0.97 0.005 120);
+  --sidebar-border: oklch(0.32 0.012 155);
+  --sidebar-ring: oklch(0.55 0.15 155);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ─── Custom Sydran utilities ──────────────────────────────────────── */
+
+/* Pixelated rendering — keeps map-art previews crisp at any size. */
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Blocky "minecraft text" feel for headings. */
+.font-pixel {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  letter-spacing: 0.02em;
+}
+
+/* The responsive gallery grid per the Phase 9 spec —
+   `repeat(auto-fill, minmax(160px, 1fr))`. Goes wide on big screens
+   and stacks naturally on phones without media queries. */
+.sydran-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+/* Custom slim scrollbar for delivery queue / long lists */
+.sydran-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.sydran-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.sydran-scroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+.sydran-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Subtle block-pulse animation for status badges. */
+@keyframes sydran-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.sydran-pulse {
+  animation: sydran-pulse 2.4s ease-in-out infinite;
+}
+
+/* Card hover lift. */
+.sydran-card-hover {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.sydran-card-hover:hover {
+  transform: translateY(-2px);
+}
+
+/* Outer wrapper for the app — guarantees the footer sits at the bottom. */
+.sydran-app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.sydran-app-shell > main {
+  flex: 1 1 auto;
+}
