@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { toOrderView } from '@/lib/mappers';
+import { isAuthed } from '@/lib/auth';
 
 /**
- * POST /api/orders/MAP-1042/deliver
+ * POST /api/orders/MAP-1042/deliver  (REQUIRES AUTH — delivery team)
  *   Body: { deliveredBy }
  *   Transition: claimed -> delivered
- *   Only the claimant can mark their own order as delivered.
- *   Delivered orders cannot be claimed again.
  */
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ code: string }> }
 ) {
+  if (!(await isAuthed(req))) {
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
+  }
   const { code } = await params;
   const body = await req.json().catch(() => ({}));
   const deliveredBy: string | undefined = body.deliveredBy;

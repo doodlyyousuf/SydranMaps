@@ -11,34 +11,16 @@ import {
   formatPrice,
   nextProductCode,
 } from '@/lib/sydran';
+import { isAuthed } from '@/lib/auth';
 
 /**
- * POST /api/mod/add
+ * POST /api/mod/add  (REQUIRES AUTH — Fabric mod / admin only)
  *   Mirrors the Fabric mod's `/sydran add` upload flow.
- *
- *   The mod uses the current ModConfig (price/category/size) and the
- *   pixel data it has captured to upload a product. The server:
- *     1. Verifies the mod has captured the right number of tiles
- *        (width × height). The body must include a `tiles` array of
- *        that exact length.
- *     2. Computes the master product hash from the per-tile hashes.
- *     3. Checks for duplicates server-side (Phase 3 safety net) —
- *        even if the mod's local duplicate setting is off.
- *     4. Inserts the product + all tile rows in one transaction.
- *
- *   Body:
- *     {
- *       productName: string,
- *       description?: string,
- *       // If omitted, the current ModConfig price/category/size is used.
- *       price?: number | string,
- *       category?: string,
- *       width?: number,
- *       height?: number,
- *       tiles: [{ posX, posY, tileHash }]
- *     }
  */
 export async function POST(req: NextRequest) {
+  if (!(await isAuthed(req))) {
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
+  }
   const body = await req.json().catch(() => ({}));
   const productName: string | undefined = body.productName;
   const description: string | undefined = body.description;

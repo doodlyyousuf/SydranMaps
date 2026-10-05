@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { isAuthed } from '@/lib/auth';
 
 /**
- * GET /api/delivery/queue
+ * GET /api/delivery/queue  (REQUIRES AUTH)
  *   Returns the delivery queue — every order that is currently in
  *   paid / claimed / delivered status with the fields the delivery
  *   team needs at-a-glance: order code, player, status, items with
@@ -13,6 +14,9 @@ import { db } from '@/lib/db';
  *     ?assignedTo=USERNAME  (only orders claimed by this delivery member)
  */
 export async function GET(req: NextRequest) {
+  if (!(await isAuthed(req))) {
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
+  }
   const url = new URL(req.url);
   const statusFilter = url.searchParams.get('status') ?? 'active';
   const assignedTo = url.searchParams.get('assignedTo');

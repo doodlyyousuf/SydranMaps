@@ -71,6 +71,17 @@ export function OrderDetail({ orderCode }: { orderCode: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
+      // 401 → redirect to login. The order page itself is public, but
+      // claim/deliver/simulate-payment require staff auth.
+      if (res.status === 401) {
+        toast({
+          title: 'Sign in required',
+          description: 'Only delivery members and admins can perform this action.',
+          variant: 'destructive',
+        });
+        navigate({ name: 'login' });
+        return;
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Action failed');
       setOrder(data.order);
@@ -98,6 +109,15 @@ export function OrderDetail({ orderCode }: { orderCode: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: order.totalAmount }),
       });
+      if (res.status === 401) {
+        toast({
+          title: 'Sign in required',
+          description: 'Only staff can simulate payment matching.',
+          variant: 'destructive',
+        });
+        navigate({ name: 'login' });
+        return;
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Payment simulation failed');
       setOrder(data.order);

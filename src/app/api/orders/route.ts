@@ -2,12 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { toOrderView } from '@/lib/mappers';
 import { nextOrderCode } from '@/lib/sydran';
+import { isAuthed } from '@/lib/auth';
 
 /**
- * GET /api/orders
- *   List all orders (used by admin / delivery dashboard).
+ * GET /api/orders  (REQUIRES AUTH — admin/delivery only)
+ *   List all orders. Used by admin / delivery dashboard.
+ *   Public customers view their own order via GET /api/orders/[code]
+ *   using the MAP-XXXX code they received at checkout.
  */
 export async function GET(req: NextRequest) {
+  if (!(await isAuthed(req))) {
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
+  }
   const url = new URL(req.url);
   const status = url.searchParams.get('status');
   const player = url.searchParams.get('player');
@@ -25,7 +31,7 @@ export async function GET(req: NextRequest) {
 }
 
 /**
- * POST /api/orders
+ * POST /api/orders  (PUBLIC — customers create orders at checkout)
  *   Create a new order. Body:
  *     { player, items: [{ productId, quantity }] }
  *   New orders start as "awaiting_payment". The order code is generated

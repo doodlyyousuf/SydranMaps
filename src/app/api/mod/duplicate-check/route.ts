@@ -1,30 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { generateProductHash } from '@/lib/pixel-art';
+import { isAuthed } from '@/lib/auth';
 
 /**
- * POST /api/mod/duplicate-check
- *   Server-side duplicate fingerprint check. Called by the Fabric mod
- *   before uploading (and re-checked during /api/mod/add as a safety net).
- *
- *   Body:
- *     {
- *       productName: string,
- *       category: string,
- *       width: number,
- *       height: number,
- *       // The actual per-tile byte hashes the mod computed client-side.
- *       // We re-derive the master fingerprint from the same inputs.
- *     }
- *
- *   Returns:
- *     { isDuplicate: boolean, mapHash: string, existingProduct?: {...} }
- *
- *   The server enforces uniqueness via Product.mapHash @unique, so even
- *   if a mod uploads twice or two users upload the same map, the second
- *   insert is rejected.
+ * POST /api/mod/duplicate-check  (REQUIRES AUTH — Fabric mod / admin)
+ *   Server-side duplicate fingerprint check.
  */
 export async function POST(req: NextRequest) {
+  if (!(await isAuthed(req))) {
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
+  }
   const body = await req.json().catch(() => ({}));
   const { productName, category, width, height } = body as {
     productName?: string;

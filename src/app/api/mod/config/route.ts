@@ -1,28 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { parsePrice, parseSize, CATEGORIES } from '@/lib/sydran';
+import { isAuthed } from '@/lib/auth';
 
 /**
- * GET /api/mod/config
- *   Returns the current Fabric mod configuration. This is what the mod
- *   sees when it boots up.
+ * GET /api/mod/config  (REQUIRES AUTH)
+ *   Returns the current Fabric mod configuration.
  *
- * PUT /api/mod/config
- *   Updates the live mod config. Used by the equivalent of:
- *     /sydran setprice 1.5m
- *     /sydran setcategory anime
- *     /sydran setsize 10x6
- *     /sydran setduplicate on|off
- *
- *   Body shape (any subset of these keys):
- *     {
- *       price?: "1.5m" | 1500000 | number | string,
- *       category?: "anime",
- *       size?: "10x6",
- *       duplicateCheck?: boolean
- *     }
+ * PUT /api/mod/config  (REQUIRES AUTH)
+ *   Updates the live mod config.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!(await isAuthed(req))) {
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
+  }
   let cfg = await db.modConfig.findFirst({ where: { id: 'default' } });
   if (!cfg) {
     cfg = await db.modConfig.create({ data: { id: 'default' } });
@@ -43,6 +34,9 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
+  if (!(await isAuthed(req))) {
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
+  }
   const body = await req.json().catch(() => ({}));
   const updates: Record<string, unknown> = {};
 

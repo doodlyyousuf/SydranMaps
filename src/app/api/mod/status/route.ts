@@ -1,23 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/sydran';
+import { isAuthed } from '@/lib/auth';
 
 /**
- * GET /api/mod/status
- *   Returns the same shape the Fabric mod prints for /sydran status:
- *
- *     Sydran Maps
- *     ──────────────
- *     API: Connected ✓
- *     Size: 10×6
- *     Price: $1.5M
- *     Category: Anime
- *     Duplicate Check: ON
- *
- *   We return both a `text` field (the literal block above, useful for
- *   the in-game console mock) and a structured `config` object.
+ * GET /api/mod/status  (REQUIRES AUTH)
+ *   Returns the same shape the Fabric mod prints for /sydran status.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!(await isAuthed(req))) {
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
+  }
   let cfg = await db.modConfig.findFirst({ where: { id: 'default' } });
   if (!cfg) {
     cfg = await db.modConfig.create({ data: { id: 'default' } });
