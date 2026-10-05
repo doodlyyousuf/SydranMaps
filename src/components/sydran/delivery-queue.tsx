@@ -54,6 +54,7 @@ export function DeliveryQueue() {
   const { navigate } = useRouter();
   const { toast } = useToast();
   const [items, setItems] = useState<QueueItem[]>([]);
+  const [deliveredHistory, setDeliveredHistory] = useState<QueueItem[]>([]);
   const [summary, setSummary] = useState<{
     total: number;
     paid: number;
@@ -62,6 +63,7 @@ export function DeliveryQueue() {
     mapsToDeliver: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'active' | 'all' | OrderStatus>('active');
   const [assignedTo, setAssignedTo] = useState('');
 
@@ -83,9 +85,21 @@ export function DeliveryQueue() {
       .finally(() => setLoading(false));
   }, [statusFilter, assignedTo]);
 
+  // Load delivered-history in parallel (separate request so the active
+  // queue filter doesn't hide delivered orders).
+  const loadHistory = useCallback(() => {
+    setHistoryLoading(true);
+    fetch('/api/delivery/queue?status=delivered')
+      .then((r) => r.json())
+      .then((data) => setDeliveredHistory(data.queue ?? []))
+      .catch(() => setDeliveredHistory([]))
+      .finally(() => setHistoryLoading(false));
+  }, []);
+
   useEffect(() => {
     load();
-  }, [load]);
+    loadHistory();
+  }, [load, loadHistory]);
 
   const call = async (code: string, path: string, body: Record<string, unknown>) => {
     try {
@@ -101,6 +115,7 @@ export function DeliveryQueue() {
         description: `Order ${data.order.code} → ${data.order.status.toUpperCase()}`,
       });
       load();
+      loadHistory();
     } catch (e) {
       toast({
         title: 'Action failed',
@@ -204,6 +219,53 @@ export function DeliveryQueue() {
           ))}
         </div>
       )}
+
+      {/* ── Recent deliveries — Phase 1: delivered orders remain visible ── */}
+      <section className="mt-8">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-pixel text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            <CheckCircle2 className="mr-1.5 inline h-4 w-4 text-emerald-400" />
+            Recent deliveries
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            {deliveredHistory.length} completed
+          </span>
+        </div>
+
+        {historyLoading ? (
+          <Skeleton className="h-20 w-full rounded-xl" />
+        ) : deliveredHistory.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border bg-card/40 p-6 text-center text-sm text-muted-foreground">
+            No deliveries yet — claimed orders will appear here once marked delivered.
+          </div>
+        ) : (
+          <ul className="space-y-1.5">
+            {deliveredHistory.slice(0, 8).map((it) => (
+              <li key={it.id}>
+                <button
+                  onClick={() => navigate({ name: 'order', code: it.code })}
+                  className="flex w-full items-center gap-3 rounded-lg border border-border bg-card/60 px-3 py-2 text-left text-sm hover:border-emerald-500/40 hover:bg-emerald-500/5"
+                >
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                  <code className="w-24 shrink-0 font-mono text-xs">{it.code}</code>
+                  <span className="w-32 truncate">{it.player}</span>
+                  <span className="hidden flex-1 truncate text-xs text-muted-foreground sm:block">
+                    {Object.entries(it.mapBreakdown)
+                      .map(([size, qty]) => `${size} × ${qty}`)
+                      .join(', ')}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    by <strong className="text-emerald-300">{it.deliveredBy}</strong>
+                  </span>
+                  <span className="ml-auto w-16 text-right text-xs font-medium text-accent">
+                    {formatPrice(it.totalAmount)}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

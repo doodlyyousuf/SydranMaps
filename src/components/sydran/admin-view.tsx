@@ -3,6 +3,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { StatusBadge } from './status-badge';
 import { useRouter } from './router';
 import { useToast } from '@/hooks/use-toast';
@@ -79,10 +90,42 @@ export function AdminView() {
             All products + orders at a glance. Reset the demo data any time.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={reseed} disabled={reseeding} className="gap-1.5">
-          {reseeding ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Database className="h-3.5 w-3.5" />}
-          Reset demo data
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={reseeding}
+              className="gap-1.5"
+            >
+              {reseeding ? (
+                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Database className="h-3.5 w-3.5" />
+              )}
+              Reset demo data
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Reset all demo data?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will wipe every product, order, and mod-config row
+                and re-seed the database with the sample Sydran Maps
+                dataset. This cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={reseed}
+                className="bg-rose-600 text-white hover:bg-rose-500"
+              >
+                {reseeding ? 'Resetting…' : 'Yes, reset'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {/* Stats tiles */}

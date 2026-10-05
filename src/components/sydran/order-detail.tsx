@@ -30,6 +30,7 @@ import {
   AlertCircle,
   MessageSquare,
   RefreshCw,
+  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -219,26 +220,79 @@ export function OrderDetail({ orderCode }: { orderCode: string }) {
           </ol>
         </div>
 
-        {/* Discord-style notification card (Phase 3 mock) */}
+        {/* Discord-style notification card — matches Phase 3 spec exactly:
+            💰 Payment Matched
+            Order: MAP-1042
+            Player: Doodly_yousuf
+            Amount: $1M
+            Status: Paid
+            [Open Order]  [Claim Order]
+        */}
         {order.status === 'paid' && (
-          <div className="mt-4 rounded-lg border border-violet-500/30 bg-violet-500/5 p-3 text-sm">
-            <div className="flex items-center gap-2 font-medium text-violet-300">
-              <MessageSquare className="h-4 w-4" />
-              💰 Payment Matched
+          <div className="mt-4 overflow-hidden rounded-lg border border-violet-500/30 bg-violet-500/5">
+            {/* Discord message header */}
+            <div className="flex items-center gap-2 border-b border-violet-500/20 bg-violet-500/10 px-3 py-2 text-xs">
+              <MessageSquare className="h-3.5 w-3.5 text-violet-300" />
+              <span className="font-medium text-violet-200">
+                #delivery
+              </span>
+              <span className="text-muted-foreground">
+                · Sydran Maps Bot ·{' '}
+                {new Date(order.paymentMatchedAt ?? order.createdAt).toLocaleString()}
+              </span>
             </div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              Sent to #delivery channel · {new Date(order.paymentMatchedAt ?? order.createdAt).toLocaleString()}
-            </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={copyOrderLink}
-                className="gap-1.5"
-              >
-                <Copy className="h-3 w-3" />
-                Copy order link
-              </Button>
+            {/* Discord embed body */}
+            <div className="p-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-violet-200">
+                <span>💰 Payment Matched</span>
+              </div>
+              <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+                <dt className="text-muted-foreground">Order</dt>
+                <dd className="font-mono font-medium text-foreground">{order.code}</dd>
+                <dt className="text-muted-foreground">Player</dt>
+                <dd className="font-medium text-foreground">{order.player}</dd>
+                <dt className="text-muted-foreground">Amount</dt>
+                <dd className="font-medium text-accent">
+                  {formatPrice(order.totalAmount)}
+                </dd>
+                <dt className="text-muted-foreground">Status</dt>
+                <dd>
+                  <StatusBadge status={order.status} pulse={false} />
+                </dd>
+              </dl>
+              {/* Action buttons — exactly per spec */}
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => navigate({ name: 'order', code: order.code })}
+                  className="gap-1.5 bg-violet-600 hover:bg-violet-500"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Open Order
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    document
+                      .getElementById('order-claim-input')
+                      ?.focus();
+                  }}
+                  className="gap-1.5 border-violet-500/40 text-violet-200 hover:bg-violet-500/10"
+                >
+                  <Hand className="h-3 w-3" />
+                  Claim Order
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={copyOrderLink}
+                  className="gap-1.5 text-muted-foreground"
+                >
+                  <Copy className="h-3 w-3" />
+                  Copy link
+                </Button>
+              </div>
             </div>
           </div>
         )}
@@ -320,6 +374,7 @@ export function OrderDetail({ orderCode }: { orderCode: string }) {
             </p>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Input
+                id="order-claim-input"
                 value={actor}
                 onChange={(e) => setActor(e.target.value)}
                 placeholder="Delivery member username"

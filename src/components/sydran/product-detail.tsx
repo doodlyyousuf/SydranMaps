@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -23,6 +23,7 @@ import {
   categoryLabel,
   type ProductView,
 } from '@/lib/sydran';
+import { generateTilePreviewSvg } from '@/lib/pixel-art';
 import { PixelArt } from './pixel-art';
 import { useRouter } from './router';
 import { useCart } from './use-cart';
@@ -70,6 +71,27 @@ export function ProductDetail({ productCode }: { productCode: string }) {
       cancelled = true;
     };
   }, [productCode]);
+
+  // Pre-compute per-tile SVG previews. Each tile renders distinct pixels
+  // because the seed includes posX/posY. Memoized so re-renders don't
+  // redo the work. Called unconditionally (before any early return) so
+  // React's rules-of-hooks are satisfied.
+  const tileSvgs = useMemo(() => {
+    const m = new Map<string, string>();
+    if (!data) return m;
+    for (const t of data.tiles) {
+      m.set(
+        t.id,
+        generateTilePreviewSvg({
+          productName: data.product.name,
+          category: data.product.category,
+          posX: t.posX,
+          posY: t.posY,
+        })
+      );
+    }
+    return m;
+  }, [data]);
 
   if (loading) {
     return (
@@ -167,8 +189,16 @@ export function ProductDetail({ productCode }: { productCode: string }) {
               </button>
 
               {showTiles && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Each square below is one Minecraft map ({product.width}×{product.height} ={' '}
+                  <strong className="text-foreground">{maps}</strong> tiles total).
+                  Hover a tile to see its position and fingerprint.
+                </p>
+              )}
+
+              {showTiles && (
                 <div
-                  className="mt-3 grid gap-1"
+                  className="mt-2 grid gap-1"
                   style={{
                     gridTemplateColumns: `repeat(${product.width}, minmax(0, 1fr))`,
                   }}
@@ -176,19 +206,16 @@ export function ProductDetail({ productCode }: { productCode: string }) {
                   {tiles.map((t) => (
                     <div
                       key={t.id}
-                      className="group relative aspect-square overflow-hidden rounded-sm bg-muted ring-1 ring-border/40"
+                      className="group relative aspect-square overflow-hidden rounded-sm bg-muted ring-1 ring-border/40 transition-transform hover:z-10 hover:scale-[1.15] hover:ring-primary"
                       title={`Tile (${t.posX}, ${t.posY}) — ${t.tileHash.slice(0, 12)}…`}
                     >
-                      <div
-                        className="absolute inset-0 pixelated"
-                        style={{
-                          background:
-                            'repeating-linear-gradient(45deg, rgba(255,255,255,0.06) 0 4px, rgba(0,0,0,0.05) 4px 8px), linear-gradient(135deg, var(--tw-gradient-from, ' +
-                            product.accentColor +
-                            ' 0%, transparent 60%)',
-                        }}
+                      <PixelArt
+                        svg={tileSvgs.get(t.id) ?? ''}
+                        alt={`Tile ${t.posX},${t.posY}`}
+                        aspect="square"
+                        className="absolute inset-0"
                       />
-                      <span className="absolute bottom-0 left-0 right-0 truncate bg-background/80 px-1 text-[9px] font-mono text-muted-foreground backdrop-blur">
+                      <span className="absolute bottom-0 left-0 right-0 truncate bg-background/85 px-1 text-[9px] font-mono text-muted-foreground backdrop-blur">
                         {t.posX},{t.posY}
                       </span>
                     </div>

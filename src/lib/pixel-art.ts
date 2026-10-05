@@ -179,3 +179,56 @@ export function generateTileData(opts: {
   // Just return a deterministic token. Real implementation would store actual pixel bytes.
   return `${opts.productName}::${opts.posX}x${opts.posY}`;
 }
+
+/**
+ * Generate a per-tile SVG preview for a single tile inside a larger product.
+ * Each tile gets a self-contained 16x16 cell grid derived from the
+ * (productName, category, posX, posY) tuple, so:
+ *
+ *   - The same tile always renders the same pixels (deterministic).
+ *   - Different tiles within the same product render DIFFERENT pixels
+ *     (so the breakdown grid actually looks like distinct map tiles, not
+ *     the same image repeated).
+ *
+ * Phase 15 spec: "The product should also be able to show individual tiles
+ * if needed." — this is what powers that view.
+ */
+export function generateTilePreviewSvg(opts: {
+  productName: string;
+  category: string;
+  posX: number;
+  posY: number;
+}): string {
+  const { productName, category, posX, posY } = opts;
+  // Use the tile hash itself as the seed — guarantees per-tile uniqueness.
+  const tileHashStr = generateTileHash({ productName, category, posX, posY });
+  const seed = parseInt(tileHashStr.slice(0, 8), 16);
+  const rand = rng(seed);
+  const palette = paletteFor(category);
+
+  const cellsPerSide = 16; // 16x16 visual cells per tile
+  const cellSize = 8;
+  const svgW = cellsPerSide * cellSize;
+  const svgH = cellsPerSide * cellSize;
+
+  const cells: string[] = [];
+  for (let y = 0; y < cellsPerSide; y++) {
+    for (let x = 0; x < cellsPerSide; x++) {
+      // Coarse noise — chunky regions like real map art.
+      const bx = Math.floor(x / 3);
+      const by = Math.floor(y / 3);
+      const bucket = (hashString(`${bx},${by},${tileHashStr.slice(0, 4)}`) >>> 0) / 4294967296;
+      const noise = (rand() + bucket) / 2;
+      const idx = Math.floor(noise * palette.length) % palette.length;
+      const color = palette[idx];
+      cells.push(
+        `<rect x="${x * cellSize}" y="${y * cellSize}" width="${cellSize}" height="${cellSize}" fill="${color}"/>`
+      );
+    }
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="xMidYMid slice">
+  ${cells.join('\n  ')}
+</svg>`;
+}
+

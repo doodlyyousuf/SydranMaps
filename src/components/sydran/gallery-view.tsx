@@ -14,7 +14,8 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CATEGORIES, categoryLabel, formatPrice, type ProductView } from '@/lib/sydran';
-import { Search, SlidersHorizontal, Sparkles, Shield, Layers } from 'lucide-react';
+import { useRouter } from './router';
+import { Search, SlidersHorizontal, Sparkles, Shield, Layers, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface GalleryViewProps {
@@ -23,12 +24,24 @@ interface GalleryViewProps {
 }
 
 export function GalleryView({ initialCategory = 'all' }: GalleryViewProps) {
+  const { navigate } = useRouter();
   const [products, setProducts] = useState<ProductView[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState(initialCategory);
   const [size, setSize] = useState('all');
   const [sort, setSort] = useState('newest');
   const [q, setQ] = useState('');
+  // Quick order-code lookup, e.g. "MAP-1042". Used by the delivery team
+  // to jump straight to an order without scrolling the queue.
+  const [orderLookup, setOrderLookup] = useState('');
+
+  const submitOrderLookup = () => {
+    const code = orderLookup.trim().toUpperCase();
+    if (!code) return;
+    // Allow input with or without the MAP- prefix.
+    const normalized = code.startsWith('MAP-') ? code : `MAP-${code}`;
+    navigate({ name: 'order', code: normalized });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -90,6 +103,29 @@ export function GalleryView({ initialCategory = 'all' }: GalleryViewProps) {
               <Layers className="h-3.5 w-3.5 text-violet-400" />
               Supports 1×1 to 10×6
             </span>
+          </div>
+
+          {/* Quick order-code lookup — delivery team shortcut */}
+          <div className="mt-4 flex items-center gap-2">
+            <Input
+              value={orderLookup}
+              onChange={(e) => setOrderLookup(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && submitOrderLookup()}
+              placeholder="Lookup order MAP-1042…"
+              className="h-9 max-w-xs font-mono text-sm"
+              aria-label="Quick order lookup"
+              autoComplete="off"
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={submitOrderLookup}
+              disabled={orderLookup.trim().length < 3}
+              className="gap-1.5"
+            >
+              <ArrowRight className="h-3.5 w-3.5" />
+              Open
+            </Button>
           </div>
         </div>
 
