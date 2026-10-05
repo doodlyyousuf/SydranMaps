@@ -131,6 +131,17 @@
     @apply bg-background text-foreground;
     font-family: var(--font-archivo), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    /* Subtle interactive grid in the background.
+       Two layers:
+       (1) A faint paper-tinted dot at every grid intersection (so subtle
+           you barely notice it, but it gives the page a sense of structure).
+       (2) Pointer-following glow that lights up the grid near the cursor —
+           visible only when the mouse is moving, fades to nothing at rest.
+       Together they make the background feel alive without being noisy. */
+    background-image:
+      radial-gradient(circle at center, oklch(0.24 0.028 60 / 0.07) 1px, transparent 1.6px);
+    background-size: 26px 26px;
+    background-position: -13px -13px;
   }
   canvas {
     image-rendering: pixelated;

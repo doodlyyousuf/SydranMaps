@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter, routeToHash } from './router';
 import { useCart } from './use-cart';
 import { AuthProvider, useAuth } from './use-auth';
@@ -20,6 +20,41 @@ function Shell({ children }: { children: React.ReactNode }) {
   const { authed } = useAuth();
   const { toast } = useToast();
 
+  // Pointer-following glow that lights up the background grid near the
+  // cursor. Uses CSS custom properties updated via rAF for smoothness.
+  // The glow is intentionally very faint (0.12 alpha accent color) so
+  // the background stays subtle — visible only as a soft halo.
+  const glowRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let raf = 0;
+    let lastX = 0;
+    let lastY = 0;
+    const onMove = (e: PointerEvent) => {
+      lastX = e.clientX;
+      lastY = e.clientY;
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const el = glowRef.current;
+        if (!el) return;
+        el.style.setProperty('--gx', `${lastX}px`);
+        el.style.setProperty('--gy', `${lastY}px`);
+        el.style.opacity = '1';
+        // Fade out after 2.5s of no movement.
+        clearTimeout((el as HTMLDivElement & { _t?: number })._t);
+        (el as HTMLDivElement & { _t?: number })._t = window.setTimeout(() => {
+          el.style.opacity = '0';
+        }, 2500);
+      });
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!sessionStorage.getItem('sydran-welcomed')) {
@@ -36,6 +71,22 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="sydran-app-shell">
+      {/* ── Pointer-following grid glow ───────────────────────────────
+          A fixed full-viewport div whose radial-gradient mask follows
+          the cursor (--gx, --gy are set by the pointermove effect above).
+          Sits at z-index 0 so every other element (header, cards, etc.)
+          naturally renders above it. */}
+      <div
+        ref={glowRef}
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-[1500ms]"
+        style={{
+          opacity: 0,
+          background:
+            'radial-gradient(circle 260px at var(--gx, -100px) var(--gy, -100px), oklch(0.53 0.17 36 / 0.18), transparent 70%)',
+        }}
+      />
+
       {/* ── Header — public-facing only. No auth UI visible. ───────── */}
       <header
         className="sticky top-0 z-40 flex items-center justify-between gap-4 px-[clamp(16px,5vw,64px)] py-3.5"
@@ -112,11 +163,11 @@ function Shell({ children }: { children: React.ReactNode }) {
         })}
       </nav>
 
-      {/* ── Main content ──────────────────────────────────────────── */}
-      <main>{children}</main>
+      {/* ── Main content — rendered above the grid glow (z-index auto) */}
+      <main className="relative z-10">{children}</main>
 
       {/* ── Footer — minimal, no admin hints ─────────────────────── */}
-      <footer className="flex flex-wrap justify-between gap-3 border-t border-border px-[clamp(16px,5vw,64px)] py-7 text-sm text-muted-foreground">
+      <footer className="relative z-10 flex flex-wrap justify-between gap-3 border-t border-border px-[clamp(16px,5vw,64px)] py-7 text-sm text-muted-foreground">
         <span>sydran.maps · Map-art marketplace</span>
         <span>Manual delivery only — no automated bots</span>
       </footer>
