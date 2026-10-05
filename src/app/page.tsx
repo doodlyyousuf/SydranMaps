@@ -10,7 +10,6 @@ import { OrderDetail } from '@/components/sydran/order-detail';
 import { DeliveryQueue } from '@/components/sydran/delivery-queue';
 import { ModPanel } from '@/components/sydran/mod-panel';
 import { AdminView } from '@/components/sydran/admin-view';
-import { LoginView } from '@/components/sydran/login-view';
 import { RequireAuth } from '@/components/sydran/require-auth';
 
 export default function Home() {
@@ -34,8 +33,6 @@ function PageRouter() {
       return <CartView />;
     case 'order':
       return <OrderDetail key={route.code} orderCode={route.code} />;
-    case 'login':
-      return <LoginView />;
     case 'delivery':
       return (
         <RequireAuth>

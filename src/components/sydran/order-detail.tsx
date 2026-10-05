@@ -71,15 +71,16 @@ export function OrderDetail({ orderCode }: { orderCode: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      // 401 → redirect to login. The order page itself is public, but
-      // claim/deliver/simulate-payment require staff auth.
+      // 401 → tell them to go to /#/admin (there's no visible login button).
+      // The order page itself is public, but claim/deliver/simulate-payment
+      // require staff auth. We don't auto-redirect because that would expose
+      // the admin URL pattern to anyone who clicks the buttons.
       if (res.status === 401) {
         toast({
           title: 'Sign in required',
-          description: 'Only delivery members and admins can perform this action.',
+          description: 'Open /#/admin in your browser and enter your PIN to perform this action.',
           variant: 'destructive',
         });
-        navigate({ name: 'login' });
         return;
       }
       const data = await res.json();
@@ -112,10 +113,9 @@ export function OrderDetail({ orderCode }: { orderCode: string }) {
       if (res.status === 401) {
         toast({
           title: 'Sign in required',
-          description: 'Only staff can simulate payment matching.',
+          description: 'Open /#/admin in your browser and enter your PIN to simulate payment.',
           variant: 'destructive',
         });
-        navigate({ name: 'login' });
         return;
       }
       const data = await res.json();

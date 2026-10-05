@@ -7,19 +7,17 @@ import { AuthProvider, useAuth } from './use-auth';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
-import { ShoppingCart, LogIn, LogOut } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 
+// Only the gallery nav link is visible publicly. Admin / Mod Panel /
+// Delivery are accessible by typing the URL directly (#/admin, #/mod,
+// #/delivery) — they render an inline PIN prompt when unauthenticated.
 const PUBLIC_NAV = [{ name: 'gallery' as const, label: 'Gallery' }];
-const PROTECTED_NAV = [
-  { name: 'delivery' as const, label: 'Delivery' },
-  { name: 'mod' as const, label: 'Mod Panel' },
-  { name: 'admin' as const, label: 'Admin' },
-];
 
 function Shell({ children }: { children: React.ReactNode }) {
   const { route, navigate } = useRouter();
   const { count, hydrated } = useCart();
-  const { authed, loading, logout } = useAuth();
+  const { authed } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -36,15 +34,9 @@ function Shell({ children }: { children: React.ReactNode }) {
     }
   }, [toast]);
 
-  const handleLogout = async () => {
-    await logout();
-    toast({ title: 'Signed out' });
-    navigate({ name: 'gallery' });
-  };
-
   return (
     <div className="sydran-app-shell">
-      {/* ── Header ──────────────────────────────────────────────────── */}
+      {/* ── Header — public-facing only. No auth UI visible. ───────── */}
       <header
         className="sticky top-0 z-40 flex items-center justify-between gap-4 px-[clamp(16px,5vw,64px)] py-3.5"
         style={{
@@ -78,73 +70,30 @@ function Shell({ children }: { children: React.ReactNode }) {
               </button>
             );
           })}
-          {/* Protected nav — only visible when authenticated */}
-          {authed &&
-            PROTECTED_NAV.map((item) => {
-              const active = route.name === item.name;
-              return (
-                <button
-                  key={item.name}
-                  onClick={() => navigate({ name: item.name })}
-                  className={cn(
-                    'no-underline transition-colors',
-                    active
-                      ? 'font-semibold text-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  )}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
         </nav>
 
-        <div className="flex items-center gap-2">
-          {/* Login / Logout button */}
-          {loading ? (
-            <span className="text-sm text-muted-foreground">…</span>
-          ) : authed ? (
-            <button
-              onClick={handleLogout}
-              className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-primary px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-primary hover:text-primary-foreground"
-              aria-label="Sign out"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Sign out</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => navigate({ name: 'login' })}
-              className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-primary px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-primary hover:text-primary-foreground"
-              aria-label="Admin sign in"
-            >
-              <LogIn className="h-4 w-4" />
-              <span className="hidden sm:inline">Staff sign in</span>
-            </button>
+        {/* Cart button — public, customers need this. No auth UI. */}
+        <button
+          onClick={() => navigate({ name: 'cart' })}
+          className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-primary px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-primary hover:text-primary-foreground"
+          aria-label={`Cart with ${count} items`}
+        >
+          <ShoppingCart className="h-4 w-4" />
+          <span className="hidden sm:inline">Cart</span>
+          {hydrated && count > 0 && (
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-bold text-accent-foreground">
+              {count}
+            </span>
           )}
-
-          <button
-            onClick={() => navigate({ name: 'cart' })}
-            className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-primary px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-primary hover:text-primary-foreground"
-            aria-label={`Cart with ${count} items`}
-          >
-            <ShoppingCart className="h-4 w-4" />
-            <span className="hidden sm:inline">Cart</span>
-            {hydrated && count > 0 && (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-bold text-accent-foreground">
-                {count}
-              </span>
-            )}
-          </button>
-        </div>
+        </button>
       </header>
 
-      {/* Mobile nav strip — only public links + protected when authed */}
+      {/* Mobile nav strip — public links only */}
       <nav
         className="flex items-center gap-1 overflow-x-auto px-4 py-2 md:hidden sydran-scroll"
         style={{ background: 'oklch(0.895 0.042 82 / 0.6)', backdropFilter: 'blur(8px)' }}
       >
-        {[...PUBLIC_NAV, ...(authed ? PROTECTED_NAV : [])].map((item) => {
+        {PUBLIC_NAV.map((item) => {
           const active = route.name === item.name;
           return (
             <button
@@ -166,13 +115,19 @@ function Shell({ children }: { children: React.ReactNode }) {
       {/* ── Main content ──────────────────────────────────────────── */}
       <main>{children}</main>
 
-      {/* ── Footer ────────────────────────────────────────────────── */}
+      {/* ── Footer — minimal, no admin hints ─────────────────────── */}
       <footer className="flex flex-wrap justify-between gap-3 border-t border-border px-[clamp(16px,5vw,64px)] py-7 text-sm text-muted-foreground">
         <span>sydran.maps · Map-art marketplace</span>
         <span>Manual delivery only — no automated bots</span>
       </footer>
 
+      {/* Toasts — shown when auth state changes (login success, wrong PIN) */}
       <SonnerToaster richColors position="top-right" />
+      {/* Marker — authed state is read by RequireAuth to decide whether
+          to render the PIN prompt or the protected content. */}
+      <span className="sr-only" aria-hidden>
+        {authed ? 'authed' : 'guest'}
+      </span>
     </div>
   );
 }
