@@ -2,6 +2,7 @@
 
 import { AppShell } from '@/components/sydran/app-shell';
 import { CartProvider } from '@/components/sydran/use-cart';
+import { UserAuthProvider } from '@/components/sydran/use-user-auth';
 import { useRouter } from '@/components/sydran/router';
 import { GalleryView } from '@/components/sydran/gallery-view';
 import { ProductDetail } from '@/components/sydran/product-detail';
@@ -11,13 +12,17 @@ import { DeliveryQueue } from '@/components/sydran/delivery-queue';
 import { ModPanel } from '@/components/sydran/mod-panel';
 import { AdminView } from '@/components/sydran/admin-view';
 import { RequireAuth } from '@/components/sydran/require-auth';
+import { SignupView } from '@/components/sydran/signup-view';
+import { UserLoginView } from '@/components/sydran/user-login-view';
 
 export default function Home() {
   return (
     <CartProvider>
-      <AppShell>
-        <PageRouter />
-      </AppShell>
+      <UserAuthProvider>
+        <AppShell>
+          <PageRouter />
+        </AppShell>
+      </UserAuthProvider>
     </CartProvider>
   );
 }
@@ -33,6 +38,10 @@ function PageRouter() {
       return <CartView />;
     case 'order':
       return <OrderDetail key={route.code} orderCode={route.code} />;
+    case 'signup':
+      return <SignupView />;
+    case 'user-login':
+      return <UserLoginView />;
     case 'delivery':
       return (
         <RequireAuth>

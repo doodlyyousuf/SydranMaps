@@ -91,4 +91,27 @@ model ModConfig {
   apiConnected    Boolean   @default(true)
   lastSyncAt      DateTime?
   lastSyncStatus  String?
+  // Staff presence — updated whenever a staff member (PIN-authed) loads
+  // any protected page. "Team Sydran online" = heartbeat within 5 min.
+  lastStaffHeartbeat DateTime?
+}
+
+// ── User accounts (customers, not staff) ──────────────────────────────
+// Sign-up flow:
+//   1. User enters desired username + password + Minecraft IGN.
+//   2. Server generates a random verifyAmount (1000–9999 coins).
+//   3. User pays that exact amount to doodly_yousuf in-game.
+//   4. Payment matcher (chat listener) detects the payment by same IGN
+//      and same amount → sets verified=true.
+//   5. User can now log in (if Team Sydran is online).
+model User {
+  id             String   @id @default(cuid())
+  username       String   @unique // login name (not the Minecraft IGN)
+  passwordHash   String   // salted SHA-256 hash
+  minecraftIgn   String   @unique // in-game username, verified via payment
+  verified       Boolean  @default(false)
+  verifyAmount   Int      // random amount the user must pay to doodly_yousuf
+  balance        Int      @default(0) // store credit in coins
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

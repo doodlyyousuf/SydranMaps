@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from './use-auth';
 import { useRouter } from './router';
 import { Input } from '@/components/ui/input';
@@ -12,13 +12,8 @@ import { Lock, AlertCircle, LogOut } from 'lucide-react';
  * renders a PIN prompt directly when unauthenticated, instead of
  * redirecting to a public login page.
  *
- * The prompt has NO visible branding that hints admin tools exist —
- * a casual visitor who stumbles onto #/admin sees a minimal "Access
- * restricted" prompt asking for a PIN. Only people who already know
- * the URL and the PIN get in.
- *
- * Once authed, the protected children render and a discreet sign-out
- * button appears at the bottom-right of the screen.
+ * Once authed, pings the staff heartbeat every 2 minutes so the
+ * "Team Sydran online" check stays true while staff is active.
  */
 export function RequireAuth({ children }: { children: React.ReactNode }) {
   const { authed, loading, login, logout } = useAuth();
@@ -27,6 +22,16 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
   const [pin, setPin] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Ping staff heartbeat when authed — keeps "Team Sydran online" true.
+  // Re-pings every 2 minutes while a protected page is open.
+  useEffect(() => {
+    if (!authed) return;
+    const ping = () => fetch('/api/staff/heartbeat', { method: 'POST' }).catch(() => {});
+    ping();
+    const interval = setInterval(ping, 2 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [authed]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

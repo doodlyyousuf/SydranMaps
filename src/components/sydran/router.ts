@@ -29,7 +29,9 @@ export type Route =
   | { name: 'order'; code: string }
   | { name: 'delivery' }
   | { name: 'mod' }
-  | { name: 'admin' };
+  | { name: 'admin' }
+  | { name: 'signup' }
+  | { name: 'user-login' };
 
 function parseHash(hash: string): Route {
   // Strip leading "#/" or "#".
@@ -49,6 +51,10 @@ function parseHash(hash: string): Route {
       return { name: 'mod' };
     case 'admin':
       return { name: 'admin' };
+    case 'signup':
+      return { name: 'signup' };
+    case 'user-login':
+      return { name: 'user-login' };
     default:
       return { name: 'gallery' };
   }
@@ -70,6 +76,10 @@ export function routeToHash(route: Route): string {
       return '#/mod';
     case 'admin':
       return '#/admin';
+    case 'signup':
+      return '#/signup';
+    case 'user-login':
+      return '#/user-login';
   }
 }
 

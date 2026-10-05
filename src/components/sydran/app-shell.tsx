@@ -4,10 +4,11 @@ import { useEffect, useRef } from 'react';
 import { useRouter, routeToHash } from './router';
 import { useCart } from './use-cart';
 import { AuthProvider, useAuth } from './use-auth';
+import { useUserAuth } from './use-user-auth';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, User, LogOut } from 'lucide-react';
 
 // Only the gallery nav link is visible publicly. Admin / Mod Panel /
 // Delivery are accessible by typing the URL directly (#/admin, #/mod,
@@ -18,6 +19,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   const { route, navigate } = useRouter();
   const { count, hydrated } = useCart();
   const { authed } = useAuth();
+  const { user, teamOnline, logout: userLogout } = useUserAuth();
   const { toast } = useToast();
 
   // Pointer-following glow that lights up the background grid near the
@@ -123,20 +125,55 @@ function Shell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        {/* Cart button — public, customers need this. No auth UI. */}
-        <button
-          onClick={() => navigate({ name: 'cart' })}
-          className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-primary px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-primary hover:text-primary-foreground"
-          aria-label={`Cart with ${count} items`}
-        >
-          <ShoppingCart className="h-4 w-4" />
-          <span className="hidden sm:inline">Cart</span>
-          {hydrated && count > 0 && (
-            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-bold text-accent-foreground">
-              {count}
-            </span>
+        <div className="flex items-center gap-2">
+          {/* Account button — shows IGN + balance when logged in,
+              "Sign in" when not. Discreet but visible so customers
+              can find the login page. */}
+          {user ? (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => userLogout().then(() => toast({ title: 'Signed out' }))}
+                className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-primary px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-primary hover:text-primary-foreground"
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">{user.minecraftIgn}</span>
+                <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-bold text-accent-foreground">
+                  {(user.balance / 1_000_000).toFixed(1)}M
+                </span>
+                <LogOut className="ml-1 h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => navigate({ name: 'user-login' })}
+              className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Sign in"
+            >
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline">Sign in</span>
+              {/* Small online/offline dot indicator */}
+              <span
+                className={`inline-block h-1.5 w-1.5 rounded-full ${teamOnline ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`}
+                title={teamOnline ? 'Team Sydran online' : 'Team Sydran offline'}
+              />
+            </button>
           )}
-        </button>
+
+          {/* Cart button */}
+          <button
+            onClick={() => navigate({ name: 'cart' })}
+            className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-primary px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-primary hover:text-primary-foreground"
+            aria-label={`Cart with ${count} items`}
+          >
+            <ShoppingCart className="h-4 w-4" />
+            <span className="hidden sm:inline">Cart</span>
+            {hydrated && count > 0 && (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-bold text-accent-foreground">
+                {count}
+              </span>
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Mobile nav strip — public links only */}
