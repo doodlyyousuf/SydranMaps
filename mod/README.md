@@ -6,7 +6,12 @@ all from Minecraft chat.
 
 ## Build
 
-### Default (Minecraft 1.21.x)
+### Requirements
+
+- **JDK 25** (Minecraft 26.x requires Java 25)
+- **Gradle 8.11.1+** (Gradle 8.x crashes on JDK 25 with older versions)
+
+### Build for Minecraft 26.1.2
 
 ```bash
 cd mod/
@@ -14,50 +19,40 @@ cd mod/
 # Output: build/libs/sydran-maps-1.0.0.jar
 ```
 
-### For Minecraft 26.1.x
-
-When Minecraft 26.1.2 is released, get the exact version numbers from
-https://fabricmc.net/develop/ and either:
-
-**Option A — edit `gradle.properties`:**
-```properties
-minecraft_version=26.1.2
-yarn_mappings=26.1.2+build.1
-loader_version=0.17.0
-fabric_version=0.110.0+26.1.2
-```
-Then build:
-```bash
-./gradlew build
-```
-
-**Option B — pass on command line (no file edit needed):**
-```bash
-./gradlew build \
-  -PmcVersion=26.1.2 \
-  -PyarnVersion=26.1.2+build.1 \
-  -PloaderVer=0.17.0 \
-  -PfabricVer=0.110.0+26.1.2
-```
-
-The build will print which MC version it's compiling for:
+The build will print:
 ```
 Building sydran-maps for Minecraft 26.1.2
-  Yarn:       26.1.2+build.1
-  Loader:     0.17.0
-  Fabric API: 0.110.0+26.1.2
+  Loader:       0.19.5
+  Fabric API:   0.155.3+26.1.2
+  Mappings:     Mojang official (no Yarn)
+  Java target:  25
 ```
 
-### Requirements
+### Key changes from 1.21.x → 26.1.x
 
-- Java 21+
-- Internet access (Gradle downloads MC + Fabric dependencies)
-- The `minecraft_version`, `yarn_mappings`, `loader_version`, and
-  `fabric_version` must all be compatible — check fabricmc.net/develop
+| What | 1.21.x | 26.1.x |
+|------|--------|--------|
+| Gradle | 8.8 | 8.11.1 |
+| fabric-loom | `fabric-loom` 1.7-SNAPSHOT | `net.fabricmc.fabric-loom` 1.18.2 |
+| Mappings | Yarn | Mojang official (Yarn doesn't exist for 26.x) |
+| Java target | 21 | 25 |
+| Fabric Loader | 0.16.5 | 0.19.5 |
+| Fabric API | 0.102.0+1.21.1 | 0.155.3+26.1.2 |
+
+### To target a different MC version
+
+Edit `gradle.properties` and update the three version properties:
+```properties
+minecraft_version=26.1.2
+loader_version=0.19.5
+fabric_version=0.155.3+26.1.2
+```
+
+Version numbers for any MC version: https://fabricmc.net/develop/
 
 ## Install
 
-1. Install [Fabric Loader](https://fabricmc.net/use/installer/)
+1. Install [Fabric Loader](https://fabricmc.net/use/installer/) for MC 26.1.2
 2. Install [Fabric API](https://modrinth.com/mod/fabric-api) — drop the JAR in `.minecraft/mods/`
 3. Drop `sydran-maps-1.0.0.jar` in `.minecraft/mods/`
 4. Launch Minecraft
@@ -93,16 +88,6 @@ Building sydran-maps for Minecraft 26.1.2
 3. Click **[Claim Order]** → claims the order + auto-highlights required maps
 4. Glowing maps (enchantment shimmer + tooltip) show which maps to deliver
 5. `/sydran deliver <code> <your-username>` → marks delivered + clears highlights
-
-## Compatibility
-
-The mod uses `minecraft: ">=1.21"` in `fabric.mod.json`, so it loads
-on any Minecraft 1.21+ version. The Java code uses only stable Fabric
-APIs (commands, item components, map state) that are unlikely to break
-between minor versions.
-
-If a new MC version changes an API the mod uses, update the yarn
-mappings + rebuild — the code itself shouldn't need changes.
 
 ## Config file
 

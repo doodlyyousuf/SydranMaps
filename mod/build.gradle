@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version "${loom_version}"
+    id 'net.fabricmc.fabric-loom' version '1.18.2'
     id 'maven-publish'
 }
 
@@ -15,26 +15,11 @@ repositories {
     maven { url = 'https://maven.fabricmc.net/' }
 }
 
-// ── Build variants ───────────────────────────────────────────────────
-// The mod supports both Minecraft 1.21.x (current) and 26.1.x (future).
-// Switch versions by changing the four properties at the top of
-// gradle.properties, OR by passing them on the command line:
-//
-//   ./gradlew build -Pminecraft_version=26.1.2 -Pyarn_mappings=26.1.2+build.1 \
-//     -Ploader_version=0.17.0 -Pfabric_version=0.110.0+26.1.2
-//
-// Version numbers for any MC version: https://fabricmc.net/develop/
-
-def mcVersion = project.hasProperty('mcVersion') ? project.mcVersion : project.minecraft_version
-def yarnVersion = project.hasProperty('yarnVersion') ? project.yarnVersion : project.yarn_mappings
-def loaderVer = project.hasProperty('loaderVer') ? project.loaderVer : project.loader_version
-def fabricVer = project.hasProperty('fabricVer') ? project.fabricVer : project.fabric_version
-
 dependencies {
-    minecraft "com.mojang:minecraft:${mcVersion}"
-    mappings "net.fabricmc:yarn:${yarnVersion}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${loaderVer}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabricVer}"
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    // No Yarn mappings — loom uses Mojang official mappings by default for 26.x
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     implementation 'com.google.code.gson:gson:2.10.1'
 }
 
@@ -46,12 +31,12 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 21
+    it.options.release = 25
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
     withSourcesJar()
 }
 
@@ -64,10 +49,11 @@ jar {
 // Print which MC version we're building for
 task printVersion {
     doLast {
-        println "Building sydran-maps for Minecraft ${mcVersion}"
-        println "  Yarn:      ${yarnVersion}"
-        println "  Loader:    ${loaderVer}"
-        println "  Fabric API: ${fabricVer}"
+        println "Building sydran-maps for Minecraft ${project.minecraft_version}"
+        println "  Loader:       ${project.loader_version}"
+        println "  Fabric API:   ${project.fabric_version}"
+        println "  Mappings:      Mojang official (no Yarn)"
+        println "  Java target:  25"
     }
 }
 build.dependsOn printVersion
