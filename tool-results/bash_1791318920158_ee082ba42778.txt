@@ -1,0 +1,947 @@
+=== Compiling files that only need Gson + JDK ===
+--- MapHasher.java ---
+  ✓ PASS
+--- HighlightStore.java ---
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:3: error: package net.fabricmc.api does not exist
+import net.fabricmc.api.ModInitializer;
+                       ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:4: error: package net.fabricmc.fabric.api.command.v2 does not exist
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+                                         ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:5: error: package org.slf4j does not exist
+import org.slf4j.Logger;
+                ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:6: error: package org.slf4j does not exist
+import org.slf4j.LoggerFactory;
+                ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:9: error: cannot find symbol
+public class SydranMapsMod implements ModInitializer {
+                                      ^
+  symbol: class ModInitializer
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:11: error: cannot find symbol
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+                        ^
+  symbol:   class Logger
+  location: class SydranMapsMod
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranConfig.java:5: error: package net.fabricmc.loader.api does not exist
+import net.fabricmc.loader.api.FabricLoader;
+                              ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:3: error: package com.mojang.brigadier does not exist
+import com.mojang.brigadier.CommandDispatcher;
+                           ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:4: error: package com.mojang.brigadier.arguments does not exist
+import com.mojang.brigadier.arguments.StringArgumentType;
+                                     ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:5: error: package com.mojang.brigadier.context does not exist
+import com.mojang.brigadier.context.CommandContext;
+                                   ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:6: error: package com.mojang.brigadier.exceptions does not exist
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+                                      ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:7: error: package net.minecraft.server.command does not exist
+import net.minecraft.server.command.ServerCommandSource;
+                                   ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:8: error: package net.minecraft.text does not exist
+import net.minecraft.text.Text;
+                         ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:9: error: package net.minecraft.util does not exist
+import net.minecraft.util.Formatting;
+                         ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:13: error: package net.minecraft.server.command does not exist
+import static net.minecraft.server.command.CommandManager.argument;
+                                          ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:13: error: static import only from classes and interfaces
+import static net.minecraft.server.command.CommandManager.argument;
+^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:14: error: package net.minecraft.server.command does not exist
+import static net.minecraft.server.command.CommandManager.literal;
+                                          ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:14: error: static import only from classes and interfaces
+import static net.minecraft.server.command.CommandManager.literal;
+^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:18: error: package dev.sydran.maps.client does not exist
+import dev.sydran.maps.client.MapUploader;
+                             ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:23: error: cannot find symbol
+    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, SydranConfig config) {
+                                ^
+  symbol:   class CommandDispatcher
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:23: error: cannot find symbol
+    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, SydranConfig config) {
+                                                  ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:43: error: cannot find symbol
+    private static int status(CommandContext<ServerCommandSource> ctx, SydranConfig config) {
+                              ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:43: error: cannot find symbol
+    private static int status(CommandContext<ServerCommandSource> ctx, SydranConfig config) {
+                                             ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:61: error: cannot find symbol
+    private static int setPrice(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:61: error: cannot find symbol
+    private static int setPrice(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                               ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:61: error: cannot find symbol
+    private static int setPrice(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                     ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:71: error: cannot find symbol
+    private static int setCategory(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                   ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:71: error: cannot find symbol
+    private static int setCategory(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                  ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:71: error: cannot find symbol
+    private static int setCategory(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                        ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:80: error: cannot find symbol
+    private static int setSize(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                               ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:80: error: cannot find symbol
+    private static int setSize(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                              ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:80: error: cannot find symbol
+    private static int setSize(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                    ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:94: error: cannot find symbol
+    private static int setDuplicate(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                    ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:94: error: cannot find symbol
+    private static int setDuplicate(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                   ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:94: error: cannot find symbol
+    private static int setDuplicate(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                         ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:106: error: cannot find symbol
+    private static int add(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                           ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:106: error: cannot find symbol
+    private static int add(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                          ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:106: error: cannot find symbol
+    private static int add(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:119: error: cannot find symbol
+    private static int showConfig(CommandContext<ServerCommandSource> ctx, SydranConfig config) {
+                                  ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:119: error: cannot find symbol
+    private static int showConfig(CommandContext<ServerCommandSource> ctx, SydranConfig config) {
+                                                 ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:126: error: cannot find symbol
+    private static int setApiUrl(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                 ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:126: error: cannot find symbol
+    private static int setApiUrl(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:126: error: cannot find symbol
+    private static int setApiUrl(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                      ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:133: error: cannot find symbol
+    private static int setPin(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                              ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:133: error: cannot find symbol
+    private static int setPin(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                             ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:133: error: cannot find symbol
+    private static int setPin(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                   ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:139: error: cannot find symbol
+    private static int listOrders(CommandContext<ServerCommandSource> ctx, SydranConfig config) {
+                                  ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:139: error: cannot find symbol
+    private static int listOrders(CommandContext<ServerCommandSource> ctx, SydranConfig config) {
+                                                 ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:167: error: cannot find symbol
+    private static int claimOrder(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                  ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:167: error: cannot find symbol
+    private static int claimOrder(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                 ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:167: error: cannot find symbol
+    private static int claimOrder(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                       ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:184: error: cannot find symbol
+    private static int deliverOrder(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                    ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:184: error: cannot find symbol
+    private static int deliverOrder(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                   ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:184: error: cannot find symbol
+    private static int deliverOrder(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                         ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:200: error: cannot find symbol
+    private static int clearHighlights(CommandContext<ServerCommandSource> ctx) {
+                                       ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:200: error: cannot find symbol
+    private static int clearHighlights(CommandContext<ServerCommandSource> ctx) {
+                                                      ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:206: error: cannot find symbol
+    private static int rescanOrder(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+                                   ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:206: error: cannot find symbol
+    private static int rescanOrder(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+                                                  ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:206: error: cannot find symbol
+    private static int rescanOrder(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+                                                                                   ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:214: error: cannot find symbol
+    private static void pushConfigAsync(ServerCommandSource source, SydranConfig config, String key, Object value) {
+                                        ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:11: error: cannot find symbol
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+                                        ^
+  symbol:   variable LoggerFactory
+  location: class SydranMapsMod
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:14: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:18: error: package CommandRegistrationCallback does not exist
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+                                   ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranConfig.java:12: error: cannot find symbol
+    private static final Path CONFIG_FILE = FabricLoader.getInstance().getConfigDir().resolve("sydran-maps.json");
+                                            ^
+  symbol:   variable FabricLoader
+  location: class SydranConfig
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:24: error: cannot find symbol
+        dispatcher.register(literal("sydran")
+                            ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:25: error: cannot find symbol
+            .then(literal("status").executes(ctx -> status(ctx, config)))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:26: error: cannot find symbol
+            .then(literal("setprice").then(argument("amount", StringArgumentType.greedyString()).executes(ctx -> setPrice(ctx, config))))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:26: error: cannot find symbol
+            .then(literal("setprice").then(argument("amount", StringArgumentType.greedyString()).executes(ctx -> setPrice(ctx, config))))
+                                                              ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:27: error: cannot find symbol
+            .then(literal("setcategory").then(argument("category", StringArgumentType.word()).executes(ctx -> setCategory(ctx, config))))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:27: error: cannot find symbol
+            .then(literal("setcategory").then(argument("category", StringArgumentType.word()).executes(ctx -> setCategory(ctx, config))))
+                                                                   ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:28: error: cannot find symbol
+            .then(literal("setsize").then(argument("size", StringArgumentType.word()).executes(ctx -> setSize(ctx, config))))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:28: error: cannot find symbol
+            .then(literal("setsize").then(argument("size", StringArgumentType.word()).executes(ctx -> setSize(ctx, config))))
+                                                           ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:29: error: cannot find symbol
+            .then(literal("setduplicate").then(argument("state", StringArgumentType.word()).executes(ctx -> setDuplicate(ctx, config))))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:29: error: cannot find symbol
+            .then(literal("setduplicate").then(argument("state", StringArgumentType.word()).executes(ctx -> setDuplicate(ctx, config))))
+                                                                 ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:30: error: cannot find symbol
+            .then(literal("add").then(argument("name", StringArgumentType.greedyString()).executes(ctx -> add(ctx, config))).executes(ctx -> add(ctx, config)))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:30: error: cannot find symbol
+            .then(literal("add").then(argument("name", StringArgumentType.greedyString()).executes(ctx -> add(ctx, config))).executes(ctx -> add(ctx, config)))
+                                                       ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:31: error: cannot find symbol
+            .then(literal("config")
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:33: error: cannot find symbol
+                .then(literal("url").then(argument("url", StringArgumentType.greedyString()).executes(ctx -> setApiUrl(ctx, config))))
+                      ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:33: error: cannot find symbol
+                .then(literal("url").then(argument("url", StringArgumentType.greedyString()).executes(ctx -> setApiUrl(ctx, config))))
+                                                          ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:34: error: cannot find symbol
+                .then(literal("pin").then(argument("pin", StringArgumentType.word()).executes(ctx -> setPin(ctx, config)))))
+                      ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:34: error: cannot find symbol
+                .then(literal("pin").then(argument("pin", StringArgumentType.word()).executes(ctx -> setPin(ctx, config)))))
+                                                          ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:35: error: cannot find symbol
+            .then(literal("openorders").executes(ctx -> listOrders(ctx, config)))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:36: error: cannot find symbol
+            .then(literal("claim").then(argument("code", StringArgumentType.word()).then(argument("username", StringArgumentType.word()).executes(ctx -> claimOrder(ctx, config)))))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:36: error: cannot find symbol
+            .then(literal("claim").then(argument("code", StringArgumentType.word()).then(argument("username", StringArgumentType.word()).executes(ctx -> claimOrder(ctx, config)))))
+                                                         ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:36: error: cannot find symbol
+            .then(literal("claim").then(argument("code", StringArgumentType.word()).then(argument("username", StringArgumentType.word()).executes(ctx -> claimOrder(ctx, config)))))
+                                                                                                              ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:37: error: cannot find symbol
+            .then(literal("deliver").then(argument("code", StringArgumentType.word()).then(argument("username", StringArgumentType.word()).executes(ctx -> deliverOrder(ctx, config)))))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:37: error: cannot find symbol
+            .then(literal("deliver").then(argument("code", StringArgumentType.word()).then(argument("username", StringArgumentType.word()).executes(ctx -> deliverOrder(ctx, config)))))
+                                                           ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:37: error: cannot find symbol
+            .then(literal("deliver").then(argument("code", StringArgumentType.word()).then(argument("username", StringArgumentType.word()).executes(ctx -> deliverOrder(ctx, config)))))
+                                                                                                                ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:38: error: cannot find symbol
+            .then(literal("clearhighlights").executes(ctx -> clearHighlights(ctx)))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:39: error: cannot find symbol
+            .then(literal("rescan").then(argument("code", StringArgumentType.word()).executes(ctx -> rescanOrder(ctx))))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:39: error: cannot find symbol
+            .then(literal("rescan").then(argument("code", StringArgumentType.word()).executes(ctx -> rescanOrder(ctx))))
+                                                          ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:44: error: cannot find symbol
+        final ServerCommandSource source = ctx.getSource();
+              ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:51: error: cannot find symbol
+                    source.sendFeedback(() -> Text.literal(line).formatted(Formatting.GRAY));
+                                                                           ^
+  symbol:   variable Formatting
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:51: error: cannot find symbol
+                    source.sendFeedback(() -> Text.literal(line).formatted(Formatting.GRAY));
+                                              ^
+  symbol:   variable Text
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:54: error: cannot find symbol
+                source.sendFeedback(() -> Text.literal("✗ Failed: " + e.getMessage()).formatted(Formatting.RED));
+                                                                                                ^
+  symbol:   variable Formatting
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:54: error: cannot find symbol
+                source.sendFeedback(() -> Text.literal("✗ Failed: " + e.getMessage()).formatted(Formatting.RED));
+                                          ^
+  symbol:   variable Text
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:57: error: cannot find symbol
+        source.sendFeedback(() -> Text.literal("Fetching Sydran Maps status...").formatted(Formatting.YELLOW));
+                                                                                           ^
+  symbol:   variable Formatting
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:57: error: cannot find symbol
+        source.sendFeedback(() -> Text.literal("Fetching Sydran Maps status...").formatted(Formatting.YELLOW));
+                                  ^
+  symbol:   variable Text
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:62: error: cannot find symbol
+        String input = StringArgumentType.getString(ctx, "amount");
+                       ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:64: error: cannot find symbol
+        if (price < 0) { ctx.getSource().sendFeedback(() -> Text.literal("✗ Invalid price: " + input).formatted(Formatting.RED)); return 0; }
+                                                                                                                ^
+  symbol:   variable Formatting
+  location: class SydranCommand
+100 errors
+only showing the first 100 errors, of 192 total; use -Xmaxerrs if you would like to see more
+--- SydranConfig.java (FabricLoader missing, checking syntax) ---
+  100 errors (FabricLoader not on classpath — expected)
+--- SydranApiClient.java ---
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranConfig.java:5: error: package net.fabricmc.loader.api does not exist
+import net.fabricmc.loader.api.FabricLoader;
+                              ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranConfig.java:12: error: cannot find symbol
+    private static final Path CONFIG_FILE = FabricLoader.getInstance().getConfigDir().resolve("sydran-maps.json");
+                                            ^
+  symbol:   variable FabricLoader
+  location: class SydranConfig
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:3: error: package net.fabricmc.api does not exist
+import net.fabricmc.api.ModInitializer;
+                       ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:4: error: package net.fabricmc.fabric.api.command.v2 does not exist
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+                                         ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:5: error: package org.slf4j does not exist
+import org.slf4j.Logger;
+                ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:6: error: package org.slf4j does not exist
+import org.slf4j.LoggerFactory;
+                ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:9: error: cannot find symbol
+public class SydranMapsMod implements ModInitializer {
+                                      ^
+  symbol: class ModInitializer
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:11: error: cannot find symbol
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+                        ^
+  symbol:   class Logger
+  location: class SydranMapsMod
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:3: error: package com.mojang.brigadier does not exist
+import com.mojang.brigadier.CommandDispatcher;
+                           ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:4: error: package com.mojang.brigadier.arguments does not exist
+import com.mojang.brigadier.arguments.StringArgumentType;
+                                     ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:5: error: package com.mojang.brigadier.context does not exist
+import com.mojang.brigadier.context.CommandContext;
+                                   ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:6: error: package com.mojang.brigadier.exceptions does not exist
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+                                      ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:7: error: package net.minecraft.server.command does not exist
+import net.minecraft.server.command.ServerCommandSource;
+                                   ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:8: error: package net.minecraft.text does not exist
+import net.minecraft.text.Text;
+                         ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:9: error: package net.minecraft.util does not exist
+import net.minecraft.util.Formatting;
+                         ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:13: error: package net.minecraft.server.command does not exist
+import static net.minecraft.server.command.CommandManager.argument;
+                                          ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:13: error: static import only from classes and interfaces
+import static net.minecraft.server.command.CommandManager.argument;
+^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:14: error: package net.minecraft.server.command does not exist
+import static net.minecraft.server.command.CommandManager.literal;
+                                          ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:14: error: static import only from classes and interfaces
+import static net.minecraft.server.command.CommandManager.literal;
+^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:18: error: package dev.sydran.maps.client does not exist
+import dev.sydran.maps.client.MapUploader;
+                             ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:23: error: cannot find symbol
+    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, SydranConfig config) {
+                                ^
+  symbol:   class CommandDispatcher
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:23: error: cannot find symbol
+    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, SydranConfig config) {
+                                                  ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:43: error: cannot find symbol
+    private static int status(CommandContext<ServerCommandSource> ctx, SydranConfig config) {
+                              ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:43: error: cannot find symbol
+    private static int status(CommandContext<ServerCommandSource> ctx, SydranConfig config) {
+                                             ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:61: error: cannot find symbol
+    private static int setPrice(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:61: error: cannot find symbol
+    private static int setPrice(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                               ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:61: error: cannot find symbol
+    private static int setPrice(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                     ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:71: error: cannot find symbol
+    private static int setCategory(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                   ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:71: error: cannot find symbol
+    private static int setCategory(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                  ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:71: error: cannot find symbol
+    private static int setCategory(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                        ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:80: error: cannot find symbol
+    private static int setSize(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                               ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:80: error: cannot find symbol
+    private static int setSize(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                              ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:80: error: cannot find symbol
+    private static int setSize(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                    ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:94: error: cannot find symbol
+    private static int setDuplicate(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                    ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:94: error: cannot find symbol
+    private static int setDuplicate(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                   ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:94: error: cannot find symbol
+    private static int setDuplicate(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                         ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:106: error: cannot find symbol
+    private static int add(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                           ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:106: error: cannot find symbol
+    private static int add(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                          ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:106: error: cannot find symbol
+    private static int add(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:119: error: cannot find symbol
+    private static int showConfig(CommandContext<ServerCommandSource> ctx, SydranConfig config) {
+                                  ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:119: error: cannot find symbol
+    private static int showConfig(CommandContext<ServerCommandSource> ctx, SydranConfig config) {
+                                                 ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:126: error: cannot find symbol
+    private static int setApiUrl(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                 ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:126: error: cannot find symbol
+    private static int setApiUrl(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:126: error: cannot find symbol
+    private static int setApiUrl(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                      ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:133: error: cannot find symbol
+    private static int setPin(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                              ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:133: error: cannot find symbol
+    private static int setPin(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                             ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:133: error: cannot find symbol
+    private static int setPin(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                   ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:139: error: cannot find symbol
+    private static int listOrders(CommandContext<ServerCommandSource> ctx, SydranConfig config) {
+                                  ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:139: error: cannot find symbol
+    private static int listOrders(CommandContext<ServerCommandSource> ctx, SydranConfig config) {
+                                                 ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:167: error: cannot find symbol
+    private static int claimOrder(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                  ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:167: error: cannot find symbol
+    private static int claimOrder(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                 ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:167: error: cannot find symbol
+    private static int claimOrder(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                       ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:184: error: cannot find symbol
+    private static int deliverOrder(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                    ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:184: error: cannot find symbol
+    private static int deliverOrder(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                   ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:184: error: cannot find symbol
+    private static int deliverOrder(CommandContext<ServerCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+                                                                                                         ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:200: error: cannot find symbol
+    private static int clearHighlights(CommandContext<ServerCommandSource> ctx) {
+                                       ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:200: error: cannot find symbol
+    private static int clearHighlights(CommandContext<ServerCommandSource> ctx) {
+                                                      ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:206: error: cannot find symbol
+    private static int rescanOrder(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+                                   ^
+  symbol:   class CommandContext
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:206: error: cannot find symbol
+    private static int rescanOrder(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+                                                  ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:206: error: cannot find symbol
+    private static int rescanOrder(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+                                                                                   ^
+  symbol:   class CommandSyntaxException
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:214: error: cannot find symbol
+    private static void pushConfigAsync(ServerCommandSource source, SydranConfig config, String key, Object value) {
+                                        ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:11: error: cannot find symbol
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+                                        ^
+  symbol:   variable LoggerFactory
+  location: class SydranMapsMod
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:14: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:18: error: package CommandRegistrationCallback does not exist
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+                                   ^
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:24: error: cannot find symbol
+        dispatcher.register(literal("sydran")
+                            ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:25: error: cannot find symbol
+            .then(literal("status").executes(ctx -> status(ctx, config)))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:26: error: cannot find symbol
+            .then(literal("setprice").then(argument("amount", StringArgumentType.greedyString()).executes(ctx -> setPrice(ctx, config))))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:26: error: cannot find symbol
+            .then(literal("setprice").then(argument("amount", StringArgumentType.greedyString()).executes(ctx -> setPrice(ctx, config))))
+                                                              ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:27: error: cannot find symbol
+            .then(literal("setcategory").then(argument("category", StringArgumentType.word()).executes(ctx -> setCategory(ctx, config))))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:27: error: cannot find symbol
+            .then(literal("setcategory").then(argument("category", StringArgumentType.word()).executes(ctx -> setCategory(ctx, config))))
+                                                                   ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:28: error: cannot find symbol
+            .then(literal("setsize").then(argument("size", StringArgumentType.word()).executes(ctx -> setSize(ctx, config))))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:28: error: cannot find symbol
+            .then(literal("setsize").then(argument("size", StringArgumentType.word()).executes(ctx -> setSize(ctx, config))))
+                                                           ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:29: error: cannot find symbol
+            .then(literal("setduplicate").then(argument("state", StringArgumentType.word()).executes(ctx -> setDuplicate(ctx, config))))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:29: error: cannot find symbol
+            .then(literal("setduplicate").then(argument("state", StringArgumentType.word()).executes(ctx -> setDuplicate(ctx, config))))
+                                                                 ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:30: error: cannot find symbol
+            .then(literal("add").then(argument("name", StringArgumentType.greedyString()).executes(ctx -> add(ctx, config))).executes(ctx -> add(ctx, config)))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:30: error: cannot find symbol
+            .then(literal("add").then(argument("name", StringArgumentType.greedyString()).executes(ctx -> add(ctx, config))).executes(ctx -> add(ctx, config)))
+                                                       ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:31: error: cannot find symbol
+            .then(literal("config")
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:33: error: cannot find symbol
+                .then(literal("url").then(argument("url", StringArgumentType.greedyString()).executes(ctx -> setApiUrl(ctx, config))))
+                      ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:33: error: cannot find symbol
+                .then(literal("url").then(argument("url", StringArgumentType.greedyString()).executes(ctx -> setApiUrl(ctx, config))))
+                                                          ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:34: error: cannot find symbol
+                .then(literal("pin").then(argument("pin", StringArgumentType.word()).executes(ctx -> setPin(ctx, config)))))
+                      ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:34: error: cannot find symbol
+                .then(literal("pin").then(argument("pin", StringArgumentType.word()).executes(ctx -> setPin(ctx, config)))))
+                                                          ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:35: error: cannot find symbol
+            .then(literal("openorders").executes(ctx -> listOrders(ctx, config)))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:36: error: cannot find symbol
+            .then(literal("claim").then(argument("code", StringArgumentType.word()).then(argument("username", StringArgumentType.word()).executes(ctx -> claimOrder(ctx, config)))))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:36: error: cannot find symbol
+            .then(literal("claim").then(argument("code", StringArgumentType.word()).then(argument("username", StringArgumentType.word()).executes(ctx -> claimOrder(ctx, config)))))
+                                                         ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:36: error: cannot find symbol
+            .then(literal("claim").then(argument("code", StringArgumentType.word()).then(argument("username", StringArgumentType.word()).executes(ctx -> claimOrder(ctx, config)))))
+                                                                                                              ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:37: error: cannot find symbol
+            .then(literal("deliver").then(argument("code", StringArgumentType.word()).then(argument("username", StringArgumentType.word()).executes(ctx -> deliverOrder(ctx, config)))))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:37: error: cannot find symbol
+            .then(literal("deliver").then(argument("code", StringArgumentType.word()).then(argument("username", StringArgumentType.word()).executes(ctx -> deliverOrder(ctx, config)))))
+                                                           ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:37: error: cannot find symbol
+            .then(literal("deliver").then(argument("code", StringArgumentType.word()).then(argument("username", StringArgumentType.word()).executes(ctx -> deliverOrder(ctx, config)))))
+                                                                                                                ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:38: error: cannot find symbol
+            .then(literal("clearhighlights").executes(ctx -> clearHighlights(ctx)))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:39: error: cannot find symbol
+            .then(literal("rescan").then(argument("code", StringArgumentType.word()).executes(ctx -> rescanOrder(ctx))))
+                  ^
+  symbol:   method literal(String)
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:39: error: cannot find symbol
+            .then(literal("rescan").then(argument("code", StringArgumentType.word()).executes(ctx -> rescanOrder(ctx))))
+                                                          ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:44: error: cannot find symbol
+        final ServerCommandSource source = ctx.getSource();
+              ^
+  symbol:   class ServerCommandSource
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:51: error: cannot find symbol
+                    source.sendFeedback(() -> Text.literal(line).formatted(Formatting.GRAY));
+                                                                           ^
+  symbol:   variable Formatting
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:51: error: cannot find symbol
+                    source.sendFeedback(() -> Text.literal(line).formatted(Formatting.GRAY));
+                                              ^
+  symbol:   variable Text
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:54: error: cannot find symbol
+                source.sendFeedback(() -> Text.literal("✗ Failed: " + e.getMessage()).formatted(Formatting.RED));
+                                                                                                ^
+  symbol:   variable Formatting
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:54: error: cannot find symbol
+                source.sendFeedback(() -> Text.literal("✗ Failed: " + e.getMessage()).formatted(Formatting.RED));
+                                          ^
+  symbol:   variable Text
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:57: error: cannot find symbol
+        source.sendFeedback(() -> Text.literal("Fetching Sydran Maps status...").formatted(Formatting.YELLOW));
+                                                                                           ^
+  symbol:   variable Formatting
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:57: error: cannot find symbol
+        source.sendFeedback(() -> Text.literal("Fetching Sydran Maps status...").formatted(Formatting.YELLOW));
+                                  ^
+  symbol:   variable Text
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:62: error: cannot find symbol
+        String input = StringArgumentType.getString(ctx, "amount");
+                       ^
+  symbol:   variable StringArgumentType
+  location: class SydranCommand
+/home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:64: error: cannot find symbol
+        if (price < 0) { ctx.getSource().sendFeedback(() -> Text.literal("✗ Invalid price: " + input).formatted(Formatting.RED)); return 0; }
+                                                                                                                ^
+  symbol:   variable Formatting
+  location: class SydranCommand
+100 errors
+only showing the first 100 errors, of 192 total; use -Xmaxerrs if you would like to see more
+
+=== Syntax check (no deps, just parse) ===
+  ✓ HighlightBridge.java — syntax OK
+  ✓ MapDataReader.java — syntax OK
+  ✓ MapHighlighter.java — syntax OK
+  ✓ MapUploader.java — syntax OK
+  ✗ SydranClientMod.java: /home/z/my-project/mod/src/client/java/dev/sydran/maps/client/SydranClientMod.java:7: error: method does not override or implement a method from a supertype
+  ✓ MapHasher.java — syntax OK
+  ✓ SydranApiClient.java — syntax OK
+  ✓ SydranConfig.java — syntax OK
+  ✗ SydranMapsMod.java: /home/z/my-project/mod/src/main/java/dev/sydran/maps/SydranMapsMod.java:14: error: method does not override or implement a method from a supertype
+  ✗ SydranCommand.java: /home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:13: error: static import only from classes and interfaces
+  ✗ SydranCommand.java: /home/z/my-project/mod/src/main/java/dev/sydran/maps/command/SydranCommand.java:14: error: static import only from classes and interfaces
+  ✓ HighlightStore.java — syntax OK
