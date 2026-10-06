@@ -14,7 +14,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 interface AuthContextValue {
   authed: boolean;
   loading: boolean;
-  login: (pin: string) => Promise<{ ok: boolean; error?: string }>;
+  login: (pin: string) => Promise<{ ok: boolean; error?: string; attemptsLeft?: number; lockedMs?: number }>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -51,7 +51,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         const data = await res.json();
         if (!res.ok) {
-          return { ok: false, error: data.error ?? 'Login failed' };
+          return {
+            ok: false,
+            error: data.error ?? 'Login failed',
+            attemptsLeft: data.attemptsLeft,
+            lockedMs: data.remainingMs,
+          };
         }
         setAuthed(true);
         return { ok: true };

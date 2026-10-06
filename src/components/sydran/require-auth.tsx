@@ -22,6 +22,9 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
   const [pin, setPin] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [attemptsLeft, setAttemptsLeft] = useState<number | undefined>(undefined);
+  const [lockedUntil, setLockedUntil] = useState(0);
+  const [submitDisabled, setSubmitDisabled] = useState(false);
 
   // Ping staff heartbeat when authed — keeps "Team Sydran online" true.
   // Re-pings every 2 minutes while a protected page is open.
@@ -46,9 +49,20 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
     if (result.ok) {
       toast({ title: 'Access granted' });
       setPin('');
+      setAttemptsLeft(undefined);
+      setLockedUntil(0);
     } else {
       setError(result.error ?? 'Access denied');
       setPin('');
+      if (result.attemptsLeft !== undefined) {
+        setAttemptsLeft(result.attemptsLeft);
+      }
+      if (result.lockedMs && result.lockedMs > 0) {
+        setLockedUntil(Date.now() + result.lockedMs);
+        setSubmitDisabled(true);
+        // Re-enable after lockout expires
+        setTimeout(() => setSubmitDisabled(false), result.lockedMs);
+      }
     }
   };
 
@@ -117,23 +131,39 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
             placeholder="PIN"
             className="font-mono tracking-[0.4em]"
             autoFocus
-            disabled={submitting}
+            disabled={submitting || submitDisabled}
             aria-label="Access PIN"
           />
 
           {error && (
             <div className="flex items-start gap-2 rounded-[3px] border-[1.5px] border-accent bg-accent/10 p-2.5 text-sm text-accent-deep">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{error}</span>
+              <div>
+                <span>{error}</span>
+                {attemptsLeft !== undefined && attemptsLeft > 0 && !submitDisabled && (
+                  <p className="mt-0.5 text-xs opacity-80">
+                    {attemptsLeft} attempt{attemptsLeft === 1 ? '' : 's'} remaining before lockout.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Lockout countdown */}
+          {submitDisabled && lockedUntil > Date.now() && (
+            <div className="rounded-[3px] border-[1.5px] border-rose-500 bg-rose-500/10 p-2.5 text-center text-sm text-rose-600">
+              <Lock className="mr-1.5 inline h-3.5 w-3.5" />
+              Locked. Try again in{' '}
+              <LockoutCountdown lockedUntil={lockedUntil} onExpire={() => setSubmitDisabled(false)} />
             </div>
           )}
 
           <button
             type="submit"
-            disabled={submitting || pin.length < 4}
+            disabled={submitting || pin.length < 4 || submitDisabled}
             className="sydran-btn w-full"
           >
-            {submitting ? 'Checking…' : 'Continue'}
+            {submitting ? 'Checking…' : submitDisabled ? 'Locked' : 'Continue'}
           </button>
         </form>
       </div>
@@ -145,5 +175,31 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
         Back to gallery
       </button>
     </div>
+  );
+}
+
+/** Live countdown component — shows mm:ss until the lockout expires. */
+function LockoutCountdown({ lockedUntil, onExpire }: { lockedUntil: number; onExpire: () => void }) {
+  const [remaining, setRemaining] = useState(() => Math.max(0, lockedUntil - Date.now()));
+
+  useEffect(() => {
+    const tick = () => {
+      const left = Math.max(0, lockedUntil - Date.now());
+      setRemaining(left);
+      if (left <= 0) {
+        onExpire();
+      }
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [lockedUntil, onExpire]);
+
+  const minutes = Math.floor(remaining / 60_000);
+  const seconds = Math.floor((remaining % 60_000) / 1000);
+  return (
+    <span className="font-mono font-bold">
+      {minutes}:{seconds.toString().padStart(2, '0')}
+    </span>
   );
 }

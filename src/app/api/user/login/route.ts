@@ -1,20 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyPassword, createUserToken, setUserCookie } from '@/lib/user-auth';
+import {
+  getClientIp,
+  checkRateLimit,
+  recordFailure,
+  recordSuccess,
+  formatLockout,
+} from '@/lib/rate-limit';
 
 /**
  * POST /api/user/login
  *   Body: { username, password }
  *
  * Verifies credentials and checks the user is verified (IGN payment done).
- * Login works with just username + password — no Team Sydran online
- * requirement. The IGN verification (paying a small amount to
- * doodly_yousuf) is still required before login is allowed.
  *
- * Returns 401 for wrong credentials.
- * Returns 403 if user not verified yet.
+ * Brute-force protection: same IP-based rate limiting as the staff login.
+ * After 5 failed attempts → 15-min lockout (exponential backoff after that).
  */
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+
+  // ── Rate limit check ────────────────────────────────────────────
+  const limit = checkRateLimit(ip);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      {
+        error: `Too many failed attempts. Try again in ${formatLockout(limit.remainingMs)}.`,
+        locked: true,
+        remainingMs: limit.remainingMs,
+      },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json().catch(() => ({}));
   const username: string = (body.username ?? '').trim().toLowerCase();
   const password: string = body.password ?? '';
@@ -25,14 +44,20 @@ export async function POST(req: NextRequest) {
 
   const user = await db.user.findFirst({ where: { username } });
   if (!user) {
-    await new Promise((r) => setTimeout(r, 300)); // slow brute force
-    return NextResponse.json({ error: 'Wrong username or password.' }, { status: 401 });
+    recordFailure(ip);
+    return NextResponse.json(
+      { error: 'Wrong username or password.', attemptsLeft: checkRateLimit(ip).attemptsLeft },
+      { status: 401 }
+    );
   }
 
   const passwordOk = await verifyPassword(password, user.passwordHash);
   if (!passwordOk) {
-    await new Promise((r) => setTimeout(r, 300));
-    return NextResponse.json({ error: 'Wrong username or password.' }, { status: 401 });
+    recordFailure(ip);
+    return NextResponse.json(
+      { error: 'Wrong username or password.', attemptsLeft: checkRateLimit(ip).attemptsLeft },
+      { status: 401 }
+    );
   }
 
   if (!user.verified) {
@@ -46,6 +71,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // ── Success ─────────────────────────────────────────────────────
+  recordSuccess(ip);
   const { token, expiresAt } = await createUserToken(user.id);
   const res = NextResponse.json({
     user: {

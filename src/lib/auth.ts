@@ -116,8 +116,20 @@ export function getRequestCookie(req: NextRequest, name: string): string | undef
 }
 
 export async function isAuthed(req: NextRequest): Promise<boolean> {
+  // 1. Cookie-based auth (browser sessions — staff PIN login)
   const token = getRequestCookie(req, SESSION_COOKIE);
-  return verifySessionToken(token);
+  if (await verifySessionToken(token)) return true;
+
+  // 2. Header-based auth for the Fabric mod (Java HTTP client can't use
+  //    cookies easily). The mod sends: Authorization: SydranPIN <pin>
+  const pinHeader = req.headers.get('authorization') ?? '';
+  if (pinHeader.startsWith('SydranPIN ')) {
+    const pin = pinHeader.slice('SydranPIN '.length).trim();
+    const expectedPin = getAdminPin();
+    if (expectedPin && pin === expectedPin) return true;
+  }
+
+  return false;
 }
 
 /** Helper to set the cookie on a response. */
