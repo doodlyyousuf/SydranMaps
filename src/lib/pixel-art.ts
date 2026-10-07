@@ -619,45 +619,44 @@ export function generateTileData(opts: {
   return `${opts.productName}::${opts.posX}x${opts.posY}`;
 }
 
-// ─── Minecraft Map Colour Palette (ID → RGB) ────────────────────────
-// In Minecraft, map colours are byte indices (0-255) into a palette.
-// The first 4 bits are the base colour, the last 4 bits are shading
-// (brightness multiplier). We decode both to get the actual RGB.
-const MAP_BASE_COLORS: Record<number, [number, number, number]> = {
-  0: [0, 0, 0],           // air/transparent
-  1: [127, 178, 56],      // grass
-  2: [247, 233, 163],     // sand
-  3: [199, 125, 89],      // wool/terracotta
-  4: [160, 83, 45],       // (used for various)
-  5: [150, 108, 74],      // stone variants
-  6: [216, 175, 147],     // (used for various)
-  7: [127, 167, 229],     // water
-  8: [180, 180, 180],     // ice
-  9: [167, 167, 167],     // (used for various)
-  10: [120, 120, 120],    // (used for various)
-  11: [89, 125, 39],      // (used for various)
-  12: [146, 113, 83],     // (used for various)
-  13: [86, 86, 86],       // (used for various)
-  14: [107, 107, 107],    // (used for various)
-  15: [0, 0, 255],        // (used for various)
-  // 16+ are modded/custom — fall back to grey
-};
+// ─── REAL Minecraft Map Colour Palette ────────────────────────────────
+// 62 base colours × 4 shades = 248 possible colour IDs (0-255).
+// From the Minecraft map rendering system — exact match to in-game maps.
+const MAP_BASE_COLORS: number[][] = [
+  [0, 0, 0], [127, 178, 56], [247, 233, 163], [199, 199, 199],
+  [255, 0, 0], [160, 160, 255], [167, 167, 167], [0, 124, 0],
+  [255, 255, 255], [164, 168, 184], [151, 109, 77], [112, 112, 112],
+  [64, 64, 255], [143, 119, 72], [255, 252, 245], [216, 127, 51],
+  [178, 76, 216], [102, 153, 216], [229, 229, 51], [127, 204, 25],
+  [242, 127, 165], [76, 76, 76], [153, 153, 153], [76, 127, 153],
+  [127, 63, 178], [51, 76, 178], [102, 76, 51], [102, 127, 51],
+  [153, 51, 51], [25, 25, 25], [250, 238, 77], [92, 219, 213],
+  [74, 128, 255], [0, 217, 58], [129, 86, 49], [112, 2, 0],
+  [209, 177, 161], [159, 82, 36], [149, 87, 108], [112, 108, 138],
+  [186, 133, 36], [103, 117, 53], [160, 77, 78], [57, 41, 35],
+  [135, 107, 98], [87, 92, 92], [122, 73, 88], [76, 62, 92],
+  [76, 50, 35], [76, 82, 42], [142, 60, 46], [37, 22, 16],
+  [189, 48, 49], [148, 63, 97], [92, 25, 29], [22, 126, 134],
+  [58, 142, 140], [86, 44, 62], [20, 180, 133], [100, 100, 100],
+  [216, 175, 147], [127, 167, 150], [160, 160, 160],
+];
 
-const MAP_SHADE_MULTIPLIERS = [0.54, 0.62, 0.73, 0.85, 1.0]; // 0-4
+// Shade multipliers: 0=darkest, 1=dark, 2=normal, 3=brightest
+const MAP_SHADES = [180, 220, 255, 135];
 
-/** Decode a map colour byte (0-255) into an RGB hex string. */
+/** Decode a Minecraft map colour byte (0-255) into an RGB string. */
 function decodeMapColor(colorByte: number): string {
-  const baseIndex = (colorByte >> 4) & 0x0f; // top 4 bits
-  const shadeIndex = colorByte & 0x0f;        // bottom 4 bits
+  const i = colorByte & 255;
+  const baseIdx = Math.floor(i / 4);
+  const shadeIdx = i % 4;
 
-  // Shade multiplier: 0=brightest, 3=darkest, 4=normal
-  const shadeLevel = shadeIndex > 3 ? 4 : shadeIndex;
-  const multiplier = MAP_SHADE_MULTIPLIERS[shadeLevel] ?? 1.0;
+  if (baseIdx === 0) return 'rgba(0,0,0,0)'; // transparent (air)
 
-  const base = MAP_BASE_COLORS[baseIndex] ?? [128, 128, 128];
-  const r = Math.min(255, Math.round(base[0] * multiplier));
-  const g = Math.min(255, Math.round(base[1] * multiplier));
-  const b = Math.min(255, Math.round(base[2] * multiplier));
+  const base = MAP_BASE_COLORS[baseIdx] ?? [100, 100, 100];
+  const mul = MAP_SHADES[shadeIdx];
+  const r = Math.floor((base[0] * mul) / 255);
+  const g = Math.floor((base[1] * mul) / 255);
+  const b = Math.floor((base[2] * mul) / 255);
 
   return `rgb(${r},${g},${b})`;
 }

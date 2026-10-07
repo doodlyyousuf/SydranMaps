@@ -37,7 +37,7 @@ export function SignupView() {
   // Poll verify-status every 3s once the account is created.
   useEffect(() => {
     if (!createdUsername) return;
-    setPolling(true);
+    queueMicrotask(() => setPolling(true));
     let cancelled = false;
     const poll = async () => {
       try {
@@ -93,30 +93,6 @@ export function SignupView() {
     toast({ title: 'Copied', description: cmd });
   };
 
-  const simulateVerify = async () => {
-    if (!createdUsername) return;
-    try {
-      const res = await fetch('/api/user/simulate-verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: createdUsername }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Verify failed');
-      setVerified(true);
-      toast({
-        title: 'Payment matched',
-        description: `Verified ${data.matched.ign} paid ${formatPrice(data.matched.amount)} to ${data.matched.paidTo}.`,
-      });
-      setTimeout(() => navigate({ name: 'user-login' }), 1500);
-    } catch (e) {
-      toast({
-        title: 'Verify failed',
-        description: e instanceof Error ? e.message : 'Unknown error',
-        variant: 'destructive',
-      });
-    }
-  };
 
   return (
     <div className="mx-auto max-w-md px-4 py-8 sm:px-6">
@@ -252,7 +228,6 @@ export function SignupView() {
             onClick={simulateVerify}
             className="sydran-btn sydran-btn-ghost mt-5 w-full text-sm"
           >
-            Simulate payment match (demo only)
           </button>
         </div>
       )}

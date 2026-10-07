@@ -196,10 +196,10 @@ function Shell({ children }: { children: React.ReactNode }) {
       </nav>
 
       {/* ── Main content — rendered above the grid glow (z-index auto) */}
-      <main className="relative z-10">{children}</main>
+      <main>{children}</main>
 
       {/* ── Footer — minimal, no admin hints ─────────────────────── */}
-      <footer className="relative z-10 flex flex-wrap justify-between gap-3 border-t border-border px-[clamp(16px,5vw,64px)] py-7 text-sm text-muted-foreground">
+      <footer className="flex flex-wrap justify-between gap-3 border-t border-border px-[clamp(16px,5vw,64px)] py-7 text-sm text-muted-foreground">
         <span>sydran.maps · Map-art marketplace</span>
         <span>Manual delivery only — no automated bots</span>
       </footer>

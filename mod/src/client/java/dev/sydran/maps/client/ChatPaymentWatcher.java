@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
  * the mod:
  *   1. Extracts the sender IGN + amount from the chat message
  *   2. Checks if any unverified user has that IGN + that verify amount
- *   3. If match found → calls /api/user/simulate-verify → user is verified
+ *   3. If match found → calls /api/user/verify → user is verified
  *
  * This is fully automatic — no manual admin action needed.
  */
@@ -133,7 +133,7 @@ public class ChatPaymentWatcher {
                         // Match found — verify this user
                         SydranMapsMod.LOGGER.info("[Sydran Maps] Auto-verifying {} ({})", ign, username);
 
-                        JsonObject verifyResult = api.post("/api/user/simulate-verify",
+                        JsonObject verifyResult = api.post("/api/user/verify",
                             java.util.Map.of("username", username));
 
                         boolean verified = verifyResult.getAsJsonObject("user").get("verified").getAsBoolean();
