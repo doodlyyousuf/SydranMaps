@@ -7,8 +7,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.sydran.maps.SydranApiClient;
 import dev.sydran.maps.SydranConfig;
 import dev.sydran.maps.highlight.HighlightStore;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -19,8 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.argument;
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal;
 
 /**
  * Client-side /sydran commands.
@@ -35,9 +33,6 @@ public class SydranCommand {
         "anime", "castle", "nature", "abstract", "logo", "portrait"
     );
 
-    public static void register(ClientCommandRegistrationCallback callback) {
-        // This is called from SydranClientMod
-    }
 
     /**
      * Register all /sydran client commands on the dispatcher.
@@ -211,7 +206,7 @@ public class SydranCommand {
                     Component openButton = Component.literal("[Open Order]")
                         .withStyle(ChatFormatting.BLUE, ChatFormatting.UNDERLINE)
                         .withStyle(s -> s.withClickEvent(
-                            new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/order " + player)
+                            new ClickEvent.RunCommand("/order " + player)
                         ));
 
                     // [Claim Order] → runs /sydran claim <code> <username>
@@ -219,7 +214,7 @@ public class SydranCommand {
                     Component claimButton = Component.literal("[Claim Order]")
                         .withStyle(ChatFormatting.GREEN, ChatFormatting.UNDERLINE)
                         .withStyle(s -> s.withClickEvent(
-                            new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                            new ClickEvent.RunCommand(
                                 "/sydran claim " + code + " " + claimerName)
                         ));
 

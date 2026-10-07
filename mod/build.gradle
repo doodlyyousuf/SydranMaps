@@ -41,7 +41,18 @@ java {
 }
 
 // No remapJar — 26.1 is unobfuscated, standard jar task is sufficient
+// Loom's sourceSets already defines 'main' and 'client' — just need to
+// make sure the client source set can see main's classes + MC deps.
+sourceSets {
+    client {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+
 jar {
+    from sourceSets.main.output
+    from sourceSets.client.output
     from("LICENSE") {
         rename { "${it}_${project.archives_base_name}" }
     }
