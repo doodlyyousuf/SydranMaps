@@ -48,7 +48,7 @@ public class SydranApiClient {
         return send(req);
     }
 
-    private JsonObject post(String path, Object body) throws Exception { return sendRequest(path, "POST", body); }
+    public JsonObject post(String path, Object body) throws Exception { return sendRequest(path, "POST", body); }
     private JsonObject put(String path, Object body) throws Exception { return sendRequest(path, "PUT", body); }
 
     private JsonObject sendRequest(String path, String method, Object body) throws Exception {

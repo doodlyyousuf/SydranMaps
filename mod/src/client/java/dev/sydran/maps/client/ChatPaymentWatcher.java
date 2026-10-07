@@ -57,7 +57,7 @@ public class ChatPaymentWatcher {
         });
 
         // Also listen for system messages (payment confirmations are often system messages)
-        ClientReceiveMessageEvents.SYSTEM.register((message, overlay) -> {
+        ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
             try {
                 String text = message.getString();
                 processChatMessage(text);

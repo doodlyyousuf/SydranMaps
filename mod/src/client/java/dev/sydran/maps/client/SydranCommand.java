@@ -1,20 +1,19 @@
 package dev.sydran.maps.client;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import dev.sydran.maps.MapHasher;
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.sydran.maps.SydranApiClient;
 import dev.sydran.maps.SydranConfig;
+import dev.sydran.maps.MapHasher;
 import dev.sydran.maps.highlight.HighlightStore;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
-
-import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,263 +27,251 @@ import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.argument;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal;
 
 /**
- * All /sydran client-side commands.
+ * Simplified command structure — everything under /sydran:
  *
- * Single-map upload (one command):
- *   /sydran add name:"Anime Girl" price:50k category:anime
+ *   /sydran add <name> <price> <category>
+ *   /sydran multi <name> <price> <category>
+ *   /sydran tile <position>
+ *   /sydran done
+ *   /sydran cancel
+ *   /sydran status
  *
- * Multi-map upload (big maps, tile by tile):
- *   /sydran addmulti name:"Anime Castle" price:1.5m category:castle
- *   /sydran multimap tile:1-1
- *   /sydran multimap tile:1-2
- *   /sydran multimap tile:2-1
- *   /sydran multimap tile:2-2
- *   /sydran multimap done
- *
- * The old setprice/setcategory/setsize commands still work for
- * backward compatibility, but are no longer needed for add/addmulti.
+ * No quotes needed for names — the parser treats the last two tokens
+ * as price + category, everything before = name.
  */
 public class SydranCommand {
 
     private static final List<String> VALID_CATEGORIES = List.of(
-        "anime", "castle", "nature", "abstract", "logo", "portrait"
+        "anime", "castle", "nature", "abstract", "logo", "portrait", "games"
     );
 
-    // ── Multi-map session state (client-side, per player) ──────────
+    private static final List<String> PRICE_SUGGESTIONS = List.of(
+        "50k", "100k", "150k", "200k", "500k", "1m", "1.5m", "2m"
+    );
+
+    // ── Multi-map session state ─────────────────────────────────────
     private static String multiName;
     private static int multiPrice;
     private static String multiCategory;
     private static int multiMaxX = 0;
     private static int multiMaxY = 0;
     private static List<byte[]> multiTileData = new ArrayList<>();
-    private static List<int[]> multiTilePositions = new ArrayList<>(); // [x, y] 1-indexed
+    private static List<int[]> multiTilePositions = new ArrayList<>();
     private static boolean inMultiSession = false;
 
     public static void registerCommands(CommandDispatcher<FabricClientCommandSource> dispatcher, SydranConfig config) {
         dispatcher.register(literal("sydran")
+            // ── /sydran status ──────────────────────────────────────
             .then(literal("status").executes(ctx -> status(ctx, config)))
-            .then(literal("setprice").then(argument("amount", StringArgumentType.greedyString()).executes(ctx -> setPrice(ctx, config))))
-            .then(literal("setcategory").then(argument("category", StringArgumentType.word())
-                .suggests((ctx, builder) -> { for (String c : VALID_CATEGORIES) builder.suggest(c); return builder.buildFuture(); })
-                .executes(ctx -> setCategory(ctx, config))))
-            .then(literal("setsize").then(argument("size", StringArgumentType.word()).executes(ctx -> setSize(ctx, config))))
-            .then(literal("setduplicate").then(argument("state", StringArgumentType.word())
-                .suggests((ctx, builder) -> { builder.suggest("on"); builder.suggest("off"); return builder.buildFuture(); })
-                .executes(ctx -> setDuplicate(ctx, config))))
-            // ── /sydran add name <name> price <price> category <category> ──
-            // Autocomplete: typing "/sydran add " suggests "name"
-            // After the name value, suggests "price"
-            // After the price value, suggests "category" + lists valid categories
+            // ── /sydran add <name> <price> <category> ──────────────
+            // Greedy string for the full input; parser splits last 2 tokens as price + category
             .then(literal("add")
-                .then(literal("name")
-                    .then(argument("name", StringArgumentType.string())
-                        .then(literal("price")
-                            .then(argument("price", StringArgumentType.word())
-                                .then(literal("category")
-                                    .then(argument("category", StringArgumentType.word())
-                                        .suggests((ctx, builder) -> { for (String c : VALID_CATEGORIES) builder.suggest(c); return builder.buildFuture(); })
-                                        .executes(ctx -> addStructured(ctx, config))
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-            // ── /sydran addmulti name <name> price <price> category <category> ──
-            .then(literal("addmulti")
-                .then(literal("name")
-                    .then(argument("name", StringArgumentType.string())
-                        .then(literal("price")
-                            .then(argument("price", StringArgumentType.word())
-                                .then(literal("category")
-                                    .then(argument("category", StringArgumentType.word())
-                                        .suggests((ctx, builder) -> { for (String c : VALID_CATEGORIES) builder.suggest(c); return builder.buildFuture(); })
-                                        .executes(ctx -> startMultiStructured(ctx, config))
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-            .then(literal("multimap")
-                .then(literal("tile").then(argument("pos", StringArgumentType.word())
-                    .suggests((ctx, builder) -> {
-                        // Suggest next logical tile position based on current session
-                        if (inMultiSession && multiMaxX > 0) {
-                            // Suggest positions that haven't been filled yet
-                            for (int y = 1; y <= multiMaxY; y++) {
-                                for (int x = 1; x <= multiMaxX; x++) {
-                                    boolean filled = false;
-                                    for (int[] pos : multiTilePositions) {
-                                        if (pos[0] == x && pos[1] == y) { filled = true; break; }
-                                    }
-                                    if (!filled) builder.suggest(x + "-" + y);
-                                }
-                            }
-                        } else {
-                            // First tile — suggest 1-1
-                            builder.suggest("1-1");
-                        }
-                        return builder.buildFuture();
-                    })
-                    .executes(ctx -> addMultiTile(ctx))))
-                .then(literal("done").executes(ctx -> finishMulti(ctx, config)))
-                .then(literal("cancel").executes(ctx -> cancelMulti(ctx)))
-                .then(literal("status").executes(ctx -> multiStatus(ctx)))
-            )
-            // ── Config ─────────────────────────────────────────────────
+                .then(argument("input", StringArgumentType.greedyString())
+                    .executes(ctx -> addSimple(ctx, config))))
+            // ── /sydran multi <name> <price> <category> ────────────
+            .then(literal("multi")
+                .then(argument("input", StringArgumentType.greedyString())
+                    .executes(ctx -> startMultiSimple(ctx, config))))
+            // ── /sydran tile <position> ────────────────────────────
+            .then(literal("tile")
+                .then(argument("position", StringArgumentType.word())
+                    .suggests((ctx, builder) -> suggestTilePositions(builder))
+                    .executes(ctx -> addTile(ctx))))
+            // ── /sydran done ───────────────────────────────────────
+            .then(literal("done").executes(ctx -> finishMulti(ctx, config)))
+            // ── /sydran cancel ──────────────────────────────────────
+            .then(literal("cancel").executes(ctx -> cancelMulti(ctx)))
+            // ── /sydran openorders ─────────────────────────────────
+            .then(literal("openorders").executes(ctx -> listOrders(ctx, config)))
+            // ── /sydran claim <code> <username> ────────────────────
+            .then(literal("claim")
+                .then(argument("code", StringArgumentType.word())
+                    .then(argument("username", StringArgumentType.word())
+                        .executes(ctx -> claimOrder(ctx, config)))))
+            // ── /sydran deliver <code> <username> ──────────────────
+            .then(literal("deliver")
+                .then(argument("code", StringArgumentType.word())
+                    .then(argument("username", StringArgumentType.word())
+                        .executes(ctx -> deliverOrder(ctx, config)))))
+            // ── /sydran clearhighlights ────────────────────────────
+            .then(literal("clearhighlights").executes(ctx -> clearHighlights(ctx)))
+            // ── /sydran rescan <code> ──────────────────────────────
+            .then(literal("rescan")
+                .then(argument("code", StringArgumentType.word())
+                    .executes(ctx -> rescanOrder(ctx))))
+            // ── /sydran config ─────────────────────────────────────
             .then(literal("config")
                 .executes(ctx -> showConfig(ctx, config))
-                .then(literal("url").then(argument("url", StringArgumentType.greedyString()).executes(ctx -> setApiUrl(ctx, config))))
-                .then(literal("pin").then(argument("pin", StringArgumentType.word()).executes(ctx -> setPin(ctx, config)))))
-            // ── Order management ──────────────────────────────────────
-            .then(literal("openorders").executes(ctx -> listOrders(ctx, config)))
-            .then(literal("claim").then(argument("code", StringArgumentType.word()).then(argument("username", StringArgumentType.word()).executes(ctx -> claimOrder(ctx, config)))))
-            .then(literal("deliver").then(argument("code", StringArgumentType.word()).then(argument("username", StringArgumentType.word()).executes(ctx -> deliverOrder(ctx, config)))))
-            .then(literal("clearhighlights").executes(ctx -> clearHighlights(ctx)))
-            .then(literal("rescan").then(argument("code", StringArgumentType.word()).executes(ctx -> rescanOrder(ctx))))
+                .then(literal("url")
+                    .then(argument("url", StringArgumentType.greedyString())
+                        .executes(ctx -> setApiUrl(ctx, config))))
+                .then(literal("pin")
+                    .then(argument("pin", StringArgumentType.word())
+                        .executes(ctx -> setPin(ctx, config)))))
         );
     }
 
     // ═════════════════════════════════════════════════════════════════
-    //  PARAM PARSER — extracts name:/price:/category: from a string
+    //  INPUT PARSER
+    //  Splits "Anime Girl 50k anime" → {name:"Anime Girl", price:"50k", category:"anime"}
+    //  Last token = category, second-to-last = price, everything else = name
     // ═════════════════════════════════════════════════════════════════
 
-    private static Map<String, String> parseParams(String input) {
-        Map<String, String> params = new HashMap<>();
-        // Regex: key:"quoted value with spaces" OR key:single_word
-        Pattern p = Pattern.compile("(name|price|category):(?:\"([^\"]+)\"|([^\\s]+))");
-        Matcher m = p.matcher(input);
-        while (m.find()) {
-            String key = m.group(1);
-            String value = m.group(2) != null ? m.group(2) : m.group(3);
-            params.put(key, value);
+    private static class ParsedInput {
+        final String name;
+        final String priceStr;
+        final String category;
+        final String error;
+
+        ParsedInput(String name, String priceStr, String category, String error) {
+            this.name = name;
+            this.priceStr = priceStr;
+            this.category = category;
+            this.error = error;
         }
-        return params;
     }
 
-    // ═════════════════════════════════════════════════════════════════
-    //  /sydran add name:"Anime Girl" price:50k category:anime
-    //  Single-map upload — one command does everything
-    // ═════════════════════════════════════════════════════════════════
+    private static ParsedInput parseNamePriceCategory(String input) {
+        if (input == null || input.trim().isEmpty()) {
+            return new ParsedInput(null, null, null, "Missing name, price, and category. Usage: /sydran add <name> <price> <category>");
+        }
 
-    private static int addStructured(CommandContext<FabricClientCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
-        String name = StringArgumentType.getString(ctx, "name");
-        String priceStr = StringArgumentType.getString(ctx, "price");
-        String category = StringArgumentType.getString(ctx, "category").toLowerCase();
+        String trimmed = input.trim();
+        String[] tokens = trimmed.split("\\s+");
+
+        if (tokens.length < 3) {
+            return new ParsedInput(null, null, null,
+                "Need at least 3 words: name price category. Example: /sydran add Anime Girl 50k anime");
+        }
+
+        // Last token = category
+        String category = tokens[tokens.length - 1].toLowerCase();
+        // Second-to-last = price
+        String priceStr = tokens[tokens.length - 2];
+        // Everything before = name (joined with spaces)
+        StringBuilder nameBuilder = new StringBuilder();
+        for (int i = 0; i < tokens.length - 2; i++) {
+            if (i > 0) nameBuilder.append(" ");
+            nameBuilder.append(tokens[i]);
+        }
+        String name = nameBuilder.toString().trim();
+
+        // Validate
+        if (!VALID_CATEGORIES.contains(category)) {
+            return new ParsedInput(null, null, null,
+                "Invalid category: " + category + ". Valid: " + String.join(", ", VALID_CATEGORIES));
+        }
 
         int price = parsePrice(priceStr);
         if (price < 0) {
-            ctx.getSource().sendError(Component.literal("\u2717 Invalid price: " + priceStr)
-                .withStyle(ChatFormatting.RED));
-            return 0;
+            return new ParsedInput(null, null, null,
+                "Invalid price: " + priceStr + ". Examples: 50k, 100k, 1m, 1.5m, 2m");
         }
-        if (!VALID_CATEGORIES.contains(category)) {
-            ctx.getSource().sendError(Component.literal("\u2717 Invalid category: " + category + ". Valid: " + String.join(", ", VALID_CATEGORIES))
-                .withStyle(ChatFormatting.RED));
+
+        return new ParsedInput(name, priceStr, category, null);
+    }
+
+    // ═════════════════════════════════════════════════════════════════
+    //  /sydran add <name> <price> <category>
+    //  Single-map upload — greedy string, no quotes needed
+    // ═════════════════════════════════════════════════════════════════
+
+    private static int addSimple(CommandContext<FabricClientCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+        String input = StringArgumentType.getString(ctx, "input");
+        ParsedInput parsed = parseNamePriceCategory(input);
+
+        if (parsed.error != null) {
+            ctx.getSource().sendError(Component.literal("\u2717 " + parsed.error).withStyle(ChatFormatting.RED));
             return 0;
         }
 
+        int price = parsePrice(parsed.priceStr);
         config.setPrice(price);
-        config.setCategory(category);
+        config.setCategory(parsed.category);
         config.setMapSize(1, 1);
 
-        final String productName = name;
+        final String productName = parsed.name;
         final FabricClientCommandSource source = ctx.getSource();
-        source.sendFeedback(Component.literal("Uploading: " + productName + " | " + formatPrice(price) + " | " + category)
+        source.sendFeedback(Component.literal("Uploading: " + productName + " | " + formatPrice(price) + " | " + parsed.category)
             .withStyle(ChatFormatting.YELLOW));
 
         CompletableFuture.runAsync(() -> {
             try {
                 new MapUploader(config).upload(productName, source);
             } catch (Exception e) {
-                source.sendError(Component.literal("\u2717 Upload failed: " + e.getMessage())
-                    .withStyle(ChatFormatting.RED));
+                source.sendError(Component.literal("\u2717 Upload failed: " + e.getMessage()).withStyle(ChatFormatting.RED));
             }
         });
         return 1;
     }
 
     // ═════════════════════════════════════════════════════════════════
-    //  /sydran addmulti name <name> price <price> category <category>
-    //  Starts a multi-map upload session
+    //  /sydran multi <name> <price> <category>
+    //  Starts a multi-map session
     // ═════════════════════════════════════════════════════════════════
 
-    private static int startMultiStructured(CommandContext<FabricClientCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+    private static int startMultiSimple(CommandContext<FabricClientCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
         if (inMultiSession) {
-            ctx.getSource().sendError(Component.literal("\u2717 Already in a multi-map session! Run /sydran multimap done or /sydran multimap cancel first.")
+            ctx.getSource().sendError(Component.literal("\u2717 Already in a multi-map session! Run /sydran done or /sydran cancel first.")
                 .withStyle(ChatFormatting.RED));
             return 0;
         }
 
-        String name = StringArgumentType.getString(ctx, "name");
-        String priceStr = StringArgumentType.getString(ctx, "price");
-        String category = StringArgumentType.getString(ctx, "category").toLowerCase();
+        String input = StringArgumentType.getString(ctx, "input");
+        ParsedInput parsed = parseNamePriceCategory(input);
 
-        int price = parsePrice(priceStr);
-        if (price < 0) {
-            ctx.getSource().sendError(Component.literal("\u2717 Invalid price: " + priceStr)
-                .withStyle(ChatFormatting.RED));
-            return 0;
-        }
-        if (!VALID_CATEGORIES.contains(category)) {
-            ctx.getSource().sendError(Component.literal("\u2717 Invalid category: " + category)
-                .withStyle(ChatFormatting.RED));
+        if (parsed.error != null) {
+            ctx.getSource().sendError(Component.literal("\u2717 " + parsed.error).withStyle(ChatFormatting.RED));
             return 0;
         }
 
-        multiName = name;
+        int price = parsePrice(parsed.priceStr);
+
+        // Start session
+        multiName = parsed.name;
         multiPrice = price;
-        multiCategory = category;
+        multiCategory = parsed.category;
         multiTileData.clear();
         multiTilePositions.clear();
         multiMaxX = 0;
         multiMaxY = 0;
         inMultiSession = true;
 
-        ctx.getSource().sendFeedback(Component.literal("=== Multi-map session started ===")
-            .withStyle(ChatFormatting.GOLD));
-        ctx.getSource().sendFeedback(Component.literal("  Name: " + multiName)
-            .withStyle(ChatFormatting.WHITE));
-        ctx.getSource().sendFeedback(Component.literal("  Price: " + formatPrice(multiPrice))
-            .withStyle(ChatFormatting.GREEN));
-        ctx.getSource().sendFeedback(Component.literal("  Category: " + multiCategory)
-            .withStyle(ChatFormatting.AQUA));
-        ctx.getSource().sendFeedback(Component.literal("  Tiles collected: 0")
-            .withStyle(ChatFormatting.GRAY));
+        ctx.getSource().sendFeedback(Component.literal("=== Multi-map session started ===").withStyle(ChatFormatting.GOLD));
+        ctx.getSource().sendFeedback(Component.literal("  Name: " + multiName).withStyle(ChatFormatting.WHITE));
+        ctx.getSource().sendFeedback(Component.literal("  Price: " + formatPrice(multiPrice)).withStyle(ChatFormatting.GREEN));
+        ctx.getSource().sendFeedback(Component.literal("  Category: " + multiCategory).withStyle(ChatFormatting.AQUA));
+        ctx.getSource().sendFeedback(Component.literal("  Tiles collected: 0").withStyle(ChatFormatting.GRAY));
         ctx.getSource().sendFeedback(Component.literal("")
-            .append(Component.literal("  Add tiles with: ").withStyle(ChatFormatting.GRAY))
-            .append(Component.literal("/sydran multimap tile:1-1").withStyle(ChatFormatting.YELLOW)));
+            .append(Component.literal("  Hold a map, then: ").withStyle(ChatFormatting.GRAY))
+            .append(Component.literal("/sydran tile 1-1").withStyle(ChatFormatting.YELLOW)));
         ctx.getSource().sendFeedback(Component.literal("")
             .append(Component.literal("  When done: ").withStyle(ChatFormatting.GRAY))
-            .append(Component.literal("/sydran multimap done").withStyle(ChatFormatting.YELLOW)));
+            .append(Component.literal("/sydran done").withStyle(ChatFormatting.YELLOW)));
         ctx.getSource().sendFeedback(Component.literal("")
             .append(Component.literal("  To cancel: ").withStyle(ChatFormatting.GRAY))
-            .append(Component.literal("/sydran multimap cancel").withStyle(ChatFormatting.YELLOW)));
-        ctx.getSource().sendFeedback(Component.literal("  Tile positions are 1-indexed: row-column (e.g. 1-1 is top-left, 2-3 is row 2 col 3)")
+            .append(Component.literal("/sydran cancel").withStyle(ChatFormatting.YELLOW)));
+        ctx.getSource().sendFeedback(Component.literal("  Positions are row-column: 1-1 is top-left, 2-3 is row 2 col 3")
             .withStyle(ChatFormatting.DARK_GRAY));
         return 1;
     }
 
     // ═════════════════════════════════════════════════════════════════
-    //  /sydran multimap tile:1-1
-    //  Reads the map in the player's main hand and assigns it to position X-Y
+    //  /sydran tile <position>
+    //  Reads the map in the player's main hand, assigns to position X-Y
     // ═════════════════════════════════════════════════════════════════
 
-    private static int addMultiTile(CommandContext<FabricClientCommandSource> ctx) throws CommandSyntaxException {
+    private static int addTile(CommandContext<FabricClientCommandSource> ctx) throws CommandSyntaxException {
         if (!inMultiSession) {
-            ctx.getSource().sendError(Component.literal("\u2717 No active multi-map session! Start one with /sydran addmulti name:\"...\" price:... category:...")
+            ctx.getSource().sendError(Component.literal("\u2717 No active multi-map session! Start one with /sydran multi <name> <price> <category>")
                 .withStyle(ChatFormatting.RED));
             return 0;
         }
 
-        String posInput = StringArgumentType.getString(ctx, "pos");
-        // Parse "1-1", "2-3", etc. → x=col, y=row (1-indexed)
+        String posInput = StringArgumentType.getString(ctx, "position");
         String[] parts = posInput.split("-");
         if (parts.length != 2) {
-            ctx.getSource().sendError(Component.literal("\u2717 Invalid tile position! Use format like 1-1, 1-2, 2-1, 2-2")
+            ctx.getSource().sendError(Component.literal("\u2717 Invalid position! Use format like 1-1, 1-2, 2-1, 2-2")
                 .withStyle(ChatFormatting.RED));
             return 0;
         }
@@ -293,20 +280,18 @@ public class SydranCommand {
             tileX = Integer.parseInt(parts[0]);
             tileY = Integer.parseInt(parts[1]);
         } catch (NumberFormatException e) {
-            ctx.getSource().sendError(Component.literal("\u2717 Invalid tile position: " + posInput + ". Use numbers like 1-1, 2-3")
-                .withStyle(ChatFormatting.RED));
+            ctx.getSource().sendError(Component.literal("\u2717 Invalid position: " + posInput).withStyle(ChatFormatting.RED));
             return 0;
         }
         if (tileX < 1 || tileY < 1 || tileX > 32 || tileY > 32) {
-            ctx.getSource().sendError(Component.literal("\u2717 Tile position out of range (1-32)")
-                .withStyle(ChatFormatting.RED));
+            ctx.getSource().sendError(Component.literal("\u2717 Position out of range (1-32)").withStyle(ChatFormatting.RED));
             return 0;
         }
 
         // Check for duplicate position
         for (int[] pos : multiTilePositions) {
             if (pos[0] == tileX && pos[1] == tileY) {
-                ctx.getSource().sendError(Component.literal("\u2717 Position " + tileX + "-" + tileY + " already has a map! Use /sydran multimap cancel and restart if you need to change it.")
+                ctx.getSource().sendError(Component.literal("\u2717 Position " + tileX + "-" + tileY + " already has a map!")
                     .withStyle(ChatFormatting.RED));
                 return 0;
             }
@@ -315,7 +300,7 @@ public class SydranCommand {
         // Read the map from the player's main hand
         byte[] colors = MapDataReader.readMainHandMap();
         if (colors == null) {
-            ctx.getSource().sendError(Component.literal("\u2717 No filled map in your main hand! Hold the map you want to add, then run the command.")
+            ctx.getSource().sendError(Component.literal("\u2717 No filled map in your main hand! Hold the map you want to add.")
                 .withStyle(ChatFormatting.RED));
             return 0;
         }
@@ -328,27 +313,26 @@ public class SydranCommand {
         int count = multiTileData.size();
         ctx.getSource().sendFeedback(Component.literal("\u2713 Tile " + tileX + "-" + tileY + " added (" + count + " total)")
             .withStyle(ChatFormatting.GREEN));
-        ctx.getSource().sendFeedback(Component.literal("  Current grid: " + multiMaxX + "x" + multiMaxY + " = " + (multiMaxX * multiMaxY) + " expected, " + count + " collected")
+        ctx.getSource().sendFeedback(Component.literal("  Grid: " + multiMaxX + "x" + multiMaxY + " = " + (multiMaxX * multiMaxY) + " expected, " + count + " collected")
             .withStyle(ChatFormatting.GRAY));
         if (count < multiMaxX * multiMaxY) {
             ctx.getSource().sendFeedback(Component.literal("  Still need " + (multiMaxX * multiMaxY - count) + " more tiles")
                 .withStyle(ChatFormatting.YELLOW));
         } else {
-            ctx.getSource().sendFeedback(Component.literal("  All tiles collected! Run /sydran multimap done to upload")
+            ctx.getSource().sendFeedback(Component.literal("  All tiles collected! Run /sydran done")
                 .withStyle(ChatFormatting.GREEN));
         }
         return 1;
     }
 
     // ═════════════════════════════════════════════════════════════════
-    //  /sydran multimap done
+    //  /sydran done
     //  Finalizes and uploads all collected tiles
     // ═════════════════════════════════════════════════════════════════
 
     private static int finishMulti(CommandContext<FabricClientCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
         if (!inMultiSession) {
-            ctx.getSource().sendError(Component.literal("\u2717 No active multi-map session!")
-                .withStyle(ChatFormatting.RED));
+            ctx.getSource().sendError(Component.literal("\u2717 No active multi-map session!").withStyle(ChatFormatting.RED));
             return 0;
         }
 
@@ -356,11 +340,9 @@ public class SydranCommand {
         int expected = multiMaxX * multiMaxY;
 
         if (total == 0) {
-            ctx.getSource().sendError(Component.literal("\u2717 No tiles added! Add tiles with /sydran multimap tile:1-1 first.")
-                .withStyle(ChatFormatting.RED));
+            ctx.getSource().sendError(Component.literal("\u2717 No tiles added! Add tiles with /sydran tile 1-1 first.").withStyle(ChatFormatting.RED));
             return 0;
         }
-
         if (total < expected) {
             ctx.getSource().sendError(Component.literal("\u2717 Missing " + (expected - total) + " tiles! Expected " + expected + " (" + multiMaxX + "x" + multiMaxY + "), got " + total)
                 .withStyle(ChatFormatting.RED));
@@ -379,24 +361,26 @@ public class SydranCommand {
 
         CompletableFuture.runAsync(() -> {
             try {
-                // Hash each tile
                 List<Map<String, Object>> tilePayload = new ArrayList<>();
                 for (int i = 0; i < multiTileData.size(); i++) {
-                    int posX = multiTilePositions.get(i)[0] - 1; // convert to 0-indexed
+                    int posX = multiTilePositions.get(i)[0] - 1;
                     int posY = multiTilePositions.get(i)[1] - 1;
-                    String hash = MapHasher.tileHash(multiTileData.get(i), posX, posY, productName);
+                    byte[] colors = multiTileData.get(i);
+                    String hash = MapHasher.tileHash(colors, posX, posY, productName);
+                    String colorData = java.util.Base64.getEncoder().encodeToString(colors);
                     Map<String, Object> tile = new HashMap<>();
                     tile.put("posX", posX);
                     tile.put("posY", posY);
                     tile.put("tileHash", hash);
+                    tile.put("colorData", colorData);
                     tilePayload.add(tile);
                 }
 
-                // Duplicate check
                 SydranApiClient api = new SydranApiClient(config);
+
+                // Duplicate check
                 if (config.isDuplicateCheck()) {
-                    source.sendFeedback(Component.literal("Checking for duplicates...")
-                        .withStyle(ChatFormatting.YELLOW));
+                    source.sendFeedback(Component.literal("Checking for duplicates...").withStyle(ChatFormatting.YELLOW));
                     var dupResult = api.duplicateCheck(productName, category, width, height);
                     if (dupResult.get("isDuplicate").getAsBoolean()) {
                         var existing = dupResult.getAsJsonObject("existingProduct");
@@ -421,64 +405,71 @@ public class SydranCommand {
                 source.sendFeedback(Component.literal("\u2713 Upload complete! Product " + productCode + " (" + width + "x" + height + ", " + total + " tiles) appears in store.")
                     .withStyle(ChatFormatting.GREEN));
 
-                // Reset session
                 inMultiSession = false;
                 multiTileData.clear();
                 multiTilePositions.clear();
             } catch (Exception e) {
-                source.sendError(Component.literal("\u2717 Upload failed: " + e.getMessage())
-                    .withStyle(ChatFormatting.RED));
+                source.sendError(Component.literal("\u2717 Upload failed: " + e.getMessage()).withStyle(ChatFormatting.RED));
             }
         });
         return 1;
     }
 
     // ═════════════════════════════════════════════════════════════════
-    //  /sydran multimap cancel
-    //  Abandons the current multi session
+    //  /sydran cancel
     // ═════════════════════════════════════════════════════════════════
 
     private static int cancelMulti(CommandContext<FabricClientCommandSource> ctx) throws CommandSyntaxException {
         if (!inMultiSession) {
-            ctx.getSource().sendError(Component.literal("\u2717 No active multi-map session!")
-                .withStyle(ChatFormatting.RED));
+            ctx.getSource().sendError(Component.literal("\u2717 No active multi-map session!").withStyle(ChatFormatting.RED));
             return 0;
         }
         inMultiSession = false;
         multiName = null;
         multiTileData.clear();
         multiTilePositions.clear();
-        ctx.getSource().sendFeedback(Component.literal("\u2713 Multi-map session cancelled.")
-            .withStyle(ChatFormatting.YELLOW));
+        ctx.getSource().sendFeedback(Component.literal("\u2713 Multi-map session cancelled.").withStyle(ChatFormatting.YELLOW));
         return 1;
     }
 
     // ═════════════════════════════════════════════════════════════════
-    //  /sydran multimap status
-    //  Shows current session state
+    //  AUTOCOMPLETE HELPERS
     // ═════════════════════════════════════════════════════════════════
 
-    private static int multiStatus(CommandContext<FabricClientCommandSource> ctx) throws CommandSyntaxException {
+    private static CompletableFuture<Suggestions> suggestTilePositions(SuggestionsBuilder builder) {
         if (!inMultiSession) {
-            ctx.getSource().sendError(Component.literal("\u2717 No active multi-map session!")
-                .withStyle(ChatFormatting.RED));
-            return 0;
+            // No session — suggest 1-1 as a starting point
+            builder.suggest("1-1");
+            return builder.buildFuture();
         }
-        ctx.getSource().sendFeedback(Component.literal("=== Multi-map session ===").withStyle(ChatFormatting.GOLD));
-        ctx.getSource().sendFeedback(Component.literal("  Name: " + multiName).withStyle(ChatFormatting.WHITE));
-        ctx.getSource().sendFeedback(Component.literal("  Price: " + formatPrice(multiPrice)).withStyle(ChatFormatting.GREEN));
-        ctx.getSource().sendFeedback(Component.literal("  Category: " + multiCategory).withStyle(ChatFormatting.AQUA));
-        ctx.getSource().sendFeedback(Component.literal("  Grid: " + multiMaxX + "x" + multiMaxY).withStyle(ChatFormatting.GRAY));
-        ctx.getSource().sendFeedback(Component.literal("  Tiles collected: " + multiTileData.size() + " / " + (multiMaxX * multiMaxY)).withStyle(ChatFormatting.YELLOW));
-        for (int i = 0; i < multiTilePositions.size(); i++) {
-            int[] pos = multiTilePositions.get(i);
-            ctx.getSource().sendFeedback(Component.literal("    " + pos[0] + "-" + pos[1] + " \u2713").withStyle(ChatFormatting.DARK_GRAY));
+
+        if (multiMaxX == 0 || multiMaxY == 0) {
+            // First tile
+            builder.suggest("1-1");
+            return builder.buildFuture();
         }
-        return 1;
+
+        // Suggest unfilled positions, prioritizing the next expected one
+        // (row-by-row, left-to-right)
+        for (int y = 1; y <= multiMaxY; y++) {
+            for (int x = 1; x <= multiMaxX; x++) {
+                boolean filled = false;
+                for (int[] pos : multiTilePositions) {
+                    if (pos[0] == x && pos[1] == y) {
+                        filled = true;
+                        break;
+                    }
+                }
+                if (!filled) {
+                    builder.suggest(x + "-" + y);
+                }
+            }
+        }
+        return builder.buildFuture();
     }
 
     // ═════════════════════════════════════════════════════════════════
-    //  EXISTING COMMANDS (status, setprice, setcategory, etc.)
+    //  EXISTING COMMANDS (status, orders, claim, deliver, etc.)
     // ═════════════════════════════════════════════════════════════════
 
     private static int status(CommandContext<FabricClientCommandSource> ctx, SydranConfig config) {
@@ -496,51 +487,6 @@ public class SydranCommand {
                 source.sendError(Component.literal("\u2717 Failed: " + e.getMessage()).withStyle(ChatFormatting.RED));
             }
         });
-        return 1;
-    }
-
-    private static int setPrice(CommandContext<FabricClientCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
-        String input = StringArgumentType.getString(ctx, "amount");
-        int price = parsePrice(input);
-        if (price < 0) { ctx.getSource().sendError(Component.literal("\u2717 Invalid price: " + input).withStyle(ChatFormatting.RED)); return 0; }
-        config.setPrice(price);
-        pushConfigAsync(ctx.getSource(), config, "price", price);
-        ctx.getSource().sendFeedback(Component.literal("\u2713 Price set to " + formatPrice(price)).withStyle(ChatFormatting.GREEN));
-        return 1;
-    }
-
-    private static int setCategory(CommandContext<FabricClientCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
-        String category = StringArgumentType.getString(ctx, "category").toLowerCase();
-        if (!VALID_CATEGORIES.contains(category)) { ctx.getSource().sendError(Component.literal("\u2717 Invalid category. Valid: " + String.join(", ", VALID_CATEGORIES)).withStyle(ChatFormatting.RED)); return 0; }
-        config.setCategory(category);
-        pushConfigAsync(ctx.getSource(), config, "category", category);
-        ctx.getSource().sendFeedback(Component.literal("\u2713 Category set to " + category).withStyle(ChatFormatting.GREEN));
-        return 1;
-    }
-
-    private static int setSize(CommandContext<FabricClientCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
-        String input = StringArgumentType.getString(ctx, "size").toLowerCase();
-        String[] parts = input.split("x");
-        if (parts.length != 2) { ctx.getSource().sendError(Component.literal("\u2717 Use format like 10x6, 2x2, 1x1").withStyle(ChatFormatting.RED)); return 0; }
-        try {
-            int w = Integer.parseInt(parts[0]); int h = Integer.parseInt(parts[1]);
-            if (w < 1 || h < 1 || w > 32 || h > 32) { ctx.getSource().sendError(Component.literal("\u2717 Size out of range (1\u201332).").withStyle(ChatFormatting.RED)); return 0; }
-            config.setMapSize(w, h);
-            pushConfigAsync(ctx.getSource(), config, "size", w + "x" + h);
-            ctx.getSource().sendFeedback(Component.literal("\u2713 Map size set to " + w + "x" + h + " (" + (w * h) + " tiles)").withStyle(ChatFormatting.GREEN));
-        } catch (NumberFormatException e) { ctx.getSource().sendError(Component.literal("\u2717 Invalid size: " + input).withStyle(ChatFormatting.RED)); }
-        return 1;
-    }
-
-    private static int setDuplicate(CommandContext<FabricClientCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
-        String input = StringArgumentType.getString(ctx, "state").toLowerCase();
-        boolean on;
-        if (input.equals("on") || input.equals("true") || input.equals("1")) on = true;
-        else if (input.equals("off") || input.equals("false") || input.equals("0")) on = false;
-        else { ctx.getSource().sendError(Component.literal("\u2717 Use 'on' or 'off'.").withStyle(ChatFormatting.RED)); return 0; }
-        config.setDuplicateCheck(on);
-        pushConfigAsync(ctx.getSource(), config, "duplicateCheck", on);
-        ctx.getSource().sendFeedback(Component.literal("\u2713 Duplicate detection " + (on ? "ON" : "OFF")).withStyle(ChatFormatting.GREEN));
         return 1;
     }
 
@@ -571,7 +517,10 @@ public class SydranCommand {
             try {
                 SydranApiClient api = new SydranApiClient(config);
                 var orders = api.getClaimableOrders().getAsJsonArray("orders");
-                if (orders.size() == 0) { source.sendFeedback(Component.literal("No claimable orders.").withStyle(ChatFormatting.GRAY)); return; }
+                if (orders.size() == 0) {
+                    source.sendFeedback(Component.literal("No claimable orders.").withStyle(ChatFormatting.GRAY));
+                    return;
+                }
                 source.sendFeedback(Component.literal("Claimable orders (" + orders.size() + ")").withStyle(ChatFormatting.GOLD));
                 for (int i = 0; i < orders.size(); i++) {
                     var order = orders.get(i).getAsJsonObject();
@@ -579,15 +528,27 @@ public class SydranCommand {
                     String player = order.get("player").getAsString();
                     int amount = order.get("totalAmount").getAsInt();
                     int maps = order.get("totalMaps").getAsInt();
+
                     Component openButton = Component.literal("[Open Order]").withStyle(ChatFormatting.BLUE, ChatFormatting.UNDERLINE)
                         .withStyle(s -> s.withClickEvent(new ClickEvent.RunCommand("/order " + player)));
                     String claimerName = source.getPlayer().getName().getString();
                     Component claimButton = Component.literal("[Claim Order]").withStyle(ChatFormatting.GREEN, ChatFormatting.UNDERLINE)
                         .withStyle(s -> s.withClickEvent(new ClickEvent.RunCommand("/sydran claim " + code + " " + claimerName)));
-                    source.sendFeedback(Component.literal("").append(Component.literal("\uD83D\uDCB0 ").withStyle(ChatFormatting.GOLD)).append(Component.literal(code).withStyle(ChatFormatting.WHITE)).append(Component.literal(" \u00B7 ").withStyle(ChatFormatting.DARK_GRAY)).append(Component.literal(player).withStyle(ChatFormatting.AQUA)).append(Component.literal(" \u00B7 ").withStyle(ChatFormatting.DARK_GRAY)).append(Component.literal(formatPrice(amount)).withStyle(ChatFormatting.GREEN)).append(Component.literal(" \u00B7 ").withStyle(ChatFormatting.DARK_GRAY)).append(Component.literal(maps + " maps").withStyle(ChatFormatting.LIGHT_PURPLE)));
+
+                    source.sendFeedback(Component.literal("")
+                        .append(Component.literal("\uD83D\uDCB0 ").withStyle(ChatFormatting.GOLD))
+                        .append(Component.literal(code).withStyle(ChatFormatting.WHITE))
+                        .append(Component.literal(" \u00B7 ").withStyle(ChatFormatting.DARK_GRAY))
+                        .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
+                        .append(Component.literal(" \u00B7 ").withStyle(ChatFormatting.DARK_GRAY))
+                        .append(Component.literal(formatPrice(amount)).withStyle(ChatFormatting.GREEN))
+                        .append(Component.literal(" \u00B7 ").withStyle(ChatFormatting.DARK_GRAY))
+                        .append(Component.literal(maps + " maps").withStyle(ChatFormatting.LIGHT_PURPLE)));
                     source.sendFeedback(Component.literal("  ").append(openButton).append(Component.literal("  ")).append(claimButton));
                 }
-            } catch (Exception e) { source.sendError(Component.literal("\u2717 Failed: " + e.getMessage()).withStyle(ChatFormatting.RED)); }
+            } catch (Exception e) {
+                source.sendError(Component.literal("\u2717 Failed: " + e.getMessage()).withStyle(ChatFormatting.RED));
+            }
         });
         return 1;
     }
@@ -607,7 +568,9 @@ public class SydranCommand {
             } catch (SydranApiClient.ApiException e) {
                 String msg = e.getStatusCode() == 409 ? "\u2717 Order " + code + " not in 'paid' status" : "\u2717 Claim failed: " + e.getMessage();
                 source.sendError(Component.literal(msg).withStyle(ChatFormatting.RED));
-            } catch (Exception e) { source.sendError(Component.literal("\u2717 Claim failed: " + e.getMessage()).withStyle(ChatFormatting.RED)); }
+            } catch (Exception e) {
+                source.sendError(Component.literal("\u2717 Claim failed: " + e.getMessage()).withStyle(ChatFormatting.RED));
+            }
         });
         return 1;
     }
@@ -628,7 +591,9 @@ public class SydranCommand {
             } catch (SydranApiClient.ApiException e) {
                 String msg = e.getStatusCode() == 409 ? "\u2717 Order " + code + " not in 'claimed' status" : "\u2717 Deliver failed: " + e.getMessage();
                 source.sendError(Component.literal(msg).withStyle(ChatFormatting.RED));
-            } catch (Exception e) { source.sendError(Component.literal("\u2717 Deliver failed: " + e.getMessage()).withStyle(ChatFormatting.RED)); }
+            } catch (Exception e) {
+                source.sendError(Component.literal("\u2717 Deliver failed: " + e.getMessage()).withStyle(ChatFormatting.RED));
+            }
         });
         return 1;
     }
@@ -648,24 +613,22 @@ public class SydranCommand {
     }
 
     // ── Helpers ─────────────────────────────────────────────────────
-    private static void pushConfigAsync(FabricClientCommandSource source, SydranConfig config, String key, Object value) {
-        CompletableFuture.runAsync(() -> {
-            try { new SydranApiClient(config).updateConfig(Map.of(key, value)); }
-            catch (Exception e) { source.sendFeedback(Component.literal("\u26A0 Could not sync to server").withStyle(ChatFormatting.YELLOW)); }
-        });
-    }
-
     public static int parsePrice(String input) {
         String s = input.trim().toLowerCase().replaceAll("[$,]", "");
         if (s.isEmpty()) return -1;
         try {
             if (s.endsWith("k")) return (int)(Double.parseDouble(s.substring(0, s.length()-1)) * 1_000);
             if (s.endsWith("m")) return (int)(Double.parseDouble(s.substring(0, s.length()-1)) * 1_000_000);
+            if (s.endsWith("b")) return (int)(Double.parseDouble(s.substring(0, s.length()-1)) * 1_000_000_000);
             return Integer.parseInt(s);
         } catch (NumberFormatException e) { return -1; }
     }
 
     public static String formatPrice(int coins) {
+        if (coins >= 1_000_000_000) {
+            double b = coins / 1_000_000_000.0;
+            return "$" + (b == (int)b ? String.format("%.0f", b) : String.format("%.1f", b).replaceAll("\\.0$", "")) + "B";
+        }
         if (coins >= 1_000_000) {
             double m = coins / 1_000_000.0;
             return "$" + (m == (int)m ? String.format("%.0f", m) : String.format("%.1f", m).replaceAll("\\.0$", "")) + "M";
