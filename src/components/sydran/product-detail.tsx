@@ -14,6 +14,7 @@ import {
   Ruler,
   Calendar,
   AlertTriangle,
+  ArrowLeftRight,
 } from 'lucide-react';
 import {
   formatPrice,
@@ -43,6 +44,9 @@ export function ProductDetail({ productCode }: { productCode: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showTiles, setShowTiles] = useState(false);
+  const [reorderMode, setReorderMode] = useState(false);
+  const [reorderTiles, setReorderTiles] = useState<Array<{ id: string; posX: number; posY: number; tileHash: string }>>([]);
+  const [savingReorder, setSavingReorder] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -164,6 +168,57 @@ export function ProductDetail({ productCode }: { productCode: string }) {
     navigate({ name: 'cart' });
   };
 
+  // ── Tile reorder handlers ────────────────────────────────────────
+  const startReorder = () => {
+    setReorderTiles(tiles.map((t) => ({ ...t })));
+    setReorderMode(true);
+    setShowTiles(true);
+  };
+
+  const swapTiles = (id1: string, id2: string) => {
+    setReorderTiles((prev) => {
+      const next = [...prev];
+      const i1 = next.findIndex((t) => t.id === id1);
+      const i2 = next.findIndex((t) => t.id === id2);
+      if (i1 < 0 || i2 < 0) return prev;
+      const tmpX = next[i1].posX;
+      const tmpY = next[i1].posY;
+      next[i1] = { ...next[i1], posX: next[i2].posX, posY: next[i2].posY };
+      next[i2] = { ...next[i2], posX: tmpX, posY: tmpY };
+      return next;
+    });
+  };
+
+  const saveReorder = async () => {
+    if (!product) return;
+    setSavingReorder(true);
+    try {
+      const res = await fetch(`/api/products/${product.code}/reorder-tiles`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tiles: reorderTiles }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Reorder failed');
+      toast({ title: 'Tiles rearranged', description: `Saved ${reorderTiles.length} tile positions.` });
+      setReorderMode(false);
+      window.location.reload();
+    } catch (e) {
+      toast({
+        title: 'Reorder failed',
+        description: e instanceof Error ? e.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingReorder(false);
+    }
+  };
+
+  const cancelReorder = () => {
+    setReorderMode(false);
+    setReorderTiles([]);
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
       <button
@@ -190,27 +245,64 @@ export function ProductDetail({ productCode }: { productCode: string }) {
             </div>
           </div>
 
-          {/* Toggle to show individual tiles (Phase 15) */}
+          {/* Toggle to show individual tiles + rearrange (Phase 15) */}
           {isLarge && (
             <div className="rounded-lg border border-border bg-card/60 p-3">
-              <button
-                onClick={() => setShowTiles((v) => !v)}
-                className="flex w-full items-center justify-between text-sm font-medium"
-              >
-                <span className="inline-flex items-center gap-2">
+              <div className="flex w-full items-center justify-between">
+                <button
+                  onClick={() => setShowTiles((v) => !v)}
+                  className="inline-flex items-center gap-2 text-sm font-medium"
+                >
                   <Layers className="h-4 w-4" />
                   Tile breakdown
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {showTiles ? 'Hide' : 'Show'} {tiles.length} tiles
-                </span>
-              </button>
+                  <span className="text-xs text-muted-foreground">
+                    ({showTiles ? 'Hide' : 'Show'} {tiles.length} tiles)
+                  </span>
+                </button>
 
-              {showTiles && (
+                {/* Reorder toggle — only show when tiles are visible + not already reordering */}
+                {showTiles && !reorderMode && (
+                  <button
+                    onClick={startReorder}
+                    className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium hover:border-primary hover:text-primary"
+                  >
+                    <ArrowLeftRight className="h-3 w-3" />
+                    Rearrange tiles
+                  </button>
+                )}
+
+                {/* Save/Cancel when reordering */}
+                {reorderMode && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={saveReorder}
+                      disabled={savingReorder}
+                      className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-500"
+                    >
+                      {savingReorder ? 'Saving…' : 'Save'}
+                    </button>
+                    <button
+                      onClick={cancelReorder}
+                      className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-xs font-medium hover:border-rose-500 hover:text-rose-500"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {showTiles && !reorderMode && (
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Each square below is one Minecraft map ({product.width}×{product.height} ={' '}
-                  <strong className="text-foreground">{maps}</strong> tiles total).
-                  Hover a tile to see its position and fingerprint.
+                  Each square is one Minecraft map ({product.width}×{product.height} ={' '}
+                  <strong className="text-foreground">{maps}</strong> tiles).
+                  Hover to see position + fingerprint. Click "Rearrange tiles" to fix wrong order.
+                </p>
+              )}
+
+              {showTiles && reorderMode && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  <strong className="text-amber-500">Reorder mode:</strong> Click two tiles to swap their positions.
+                  The grid shows where each tile will end up. Click "Save" when done.
                 </p>
               )}
 
@@ -221,11 +313,26 @@ export function ProductDetail({ productCode }: { productCode: string }) {
                     gridTemplateColumns: `repeat(${product.width}, minmax(0, 1fr))`,
                   }}
                 >
-                  {tiles.map((t) => (
+                  {/* In reorder mode, render reorderTiles; otherwise render original tiles */}
+                  {(reorderMode ? reorderTiles : tiles).map((t) => (
                     <div
                       key={t.id}
-                      className="group relative aspect-square overflow-hidden rounded-sm bg-muted ring-1 ring-border/40 transition-transform hover:z-10 hover:scale-[1.15] hover:ring-primary"
+                      className={cn(
+                        'group relative aspect-square overflow-hidden rounded-sm bg-muted ring-1 ring-border/40',
+                        !reorderMode && 'transition-transform hover:z-10 hover:scale-[1.15] hover:ring-primary',
+                        reorderMode && 'cursor-pointer hover:z-10 hover:ring-2 hover:ring-amber-500'
+                      )}
                       title={`Tile (${t.posX}, ${t.posY}) — ${t.tileHash.slice(0, 12)}…`}
+                      onClick={reorderMode ? () => {
+                        // Simple swap: first click selects, second click swaps
+                        const selected = reorderTiles.find(t2 => (t2 as any)._selected);
+                        if (selected) {
+                          swapTiles(selected.id, t.id);
+                        } else {
+                          setReorderTiles(prev => prev.map(t2 => t2.id === t.id ? { ...t2, _selected: true } as any : t2));
+                        }
+                      } : undefined}
+                      style={reorderMode && (t as any)._selected ? { outline: '2px solid #f59e0b', outlineOffset: '1px' } : undefined}
                     >
                       <PixelArt
                         svg={tileSvgs.get(t.id) ?? ''}
