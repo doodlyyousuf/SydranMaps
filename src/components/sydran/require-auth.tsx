@@ -93,7 +93,7 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
             toast({ title: 'Signed out' });
             navigate({ name: 'gallery' });
           }}
-          className="fixed bottom-4 right-4 z-30 inline-flex h-9 w-9 items-center justify-center rounded-full border-[1.5px] border-border bg-background/80 text-muted-foreground opacity-50 backdrop-blur transition-opacity hover:opacity-100 hover:text-foreground"
+          className="fixed bottom-4 right-4 z-50 inline-flex h-9 w-9 items-center justify-center rounded-full border-[1.5px] border-border bg-background/80 text-muted-foreground opacity-50 backdrop-blur transition-opacity hover:opacity-100 hover:text-foreground"
           aria-label="Sign out"
           title="Sign out"
         >

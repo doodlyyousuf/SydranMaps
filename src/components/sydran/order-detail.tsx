@@ -101,40 +101,6 @@ export function OrderDetail({ orderCode }: { orderCode: string }) {
     }
   };
 
-  const simulatePayment = async () => {
-    if (!order) return;
-    setBusy(true);
-    try {
-      const res = await fetch(`/api/orders/${encodeURIComponent(orderCode)}/simulate-payment`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: order.totalAmount }),
-      });
-      if (res.status === 401) {
-        toast({
-          title: 'Sign in required',
-          description: 'Open /#/admin in your browser and enter your PIN to simulate payment.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Payment simulation failed');
-      setOrder(data.order);
-      toast({
-        title: 'Payment matched',
-        description: `Order ${data.order.code} → PAID. Discord notification sent.`,
-      });
-    } catch (e) {
-      toast({
-        title: 'Payment failed',
-        description: e instanceof Error ? e.message : 'Unknown error',
-        variant: 'destructive',
-      });
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const copyOrderLink = () => {
     if (typeof window === 'undefined') return;
@@ -170,7 +136,9 @@ export function OrderDetail({ orderCode }: { orderCode: string }) {
     );
   }
 
-  const totalMaps = order.items.reduce((s, it) => s + it.totalMaps, 0);
+  const { product, tiles } = data;
+  const maps = totalMaps(product.width, product.height);
+  const isLarge = product.width > 1 || product.height > 1;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
@@ -208,151 +176,34 @@ export function OrderDetail({ orderCode }: { orderCode: string }) {
             <div className="coin-tag inline-block px-2.5 py-1 font-pixel text-xl font-bold">
               {formatPrice(order.totalAmount)}
             </div>
-            <div className="text-[10px] text-muted-foreground">
-              {formatPriceFull(order.totalAmount)}
-            </div>
           </div>
         </div>
 
-        {/* ── Lifecycle progress bar ─────────────────────────────── */}
-        <div className="mt-4">
-          <ol className="grid grid-cols-4 gap-1">
-            {ORDER_STATUS_ORDER.map((s) => {
-              const idx = ORDER_STATUS_ORDER.indexOf(s);
-              const currentIdx = ORDER_STATUS_ORDER.indexOf(order.status as OrderStatus);
-              const done = idx <= currentIdx;
-              const isCurrent = idx === currentIdx;
-              return (
-                <li
-                  key={s}
-                  className={cn(
-                    'rounded-md border px-2 py-1.5 text-center text-[10px] font-medium uppercase tracking-wider transition-colors',
-                    done
-                      ? 'border-primary/40 bg-primary/10 text-primary'
-                      : 'border-border bg-muted/30 text-muted-foreground',
-                    isCurrent && 'ring-2 ring-primary/40 sydran-pulse'
-                  )}
-                >
-                  {s.replace('_', ' ')}
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-
-        {/* Discord-style notification card — matches Phase 3 spec exactly:
-            💰 Payment Matched
-            Order: MAP-1042
-            Player: Doodly_yousuf
-            Amount: $1M
-            Status: Paid
-            [Open Order]  [Claim Order]
-        */}
-        {order.status === 'paid' && (
-          <div className="mt-4 overflow-hidden rounded-lg border border-violet-500/30 bg-violet-500/5">
-            {/* Discord message header */}
-            <div className="flex items-center gap-2 border-b border-violet-500/20 bg-violet-500/10 px-3 py-2 text-xs">
-              <MessageSquare className="h-3.5 w-3.5 text-violet-300" />
-              <span className="font-medium text-violet-200">
-                #delivery
-              </span>
-              <span className="text-muted-foreground">
-                · Sydran Maps Bot ·{' '}
-                {new Date(order.paymentMatchedAt ?? order.createdAt).toLocaleString()}
-              </span>
-            </div>
-            {/* Discord embed body */}
-            <div className="p-3">
-              <div className="flex items-center gap-2 text-sm font-semibold text-violet-200">
-                <span>💰 Payment Matched</span>
-              </div>
-              <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-                <dt className="text-muted-foreground">Order</dt>
-                <dd className="font-mono font-medium text-foreground">{order.code}</dd>
-                <dt className="text-muted-foreground">Player</dt>
-                <dd className="font-medium text-foreground">{order.player}</dd>
-                <dt className="text-muted-foreground">Amount</dt>
-                <dd className="font-medium text-accent">
-                  {formatPrice(order.totalAmount)}
-                </dd>
-                <dt className="text-muted-foreground">Status</dt>
-                <dd>
-                  <StatusBadge status={order.status} pulse={false} />
-                </dd>
-              </dl>
-              {/* Action buttons — exactly per spec */}
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => navigate({ name: 'order', code: order.code })}
-                  className="gap-1.5 bg-violet-600 hover:bg-violet-500"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  Open Order
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    document
-                      .getElementById('order-claim-input')
-                      ?.focus();
-                  }}
-                  className="gap-1.5 border-violet-500/40 text-violet-200 hover:bg-violet-500/10"
-                >
-                  <Hand className="h-3 w-3" />
-                  Claim Order
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={copyOrderLink}
-                  className="gap-1.5 text-muted-foreground"
-                >
-                  <Copy className="h-3 w-3" />
-                  Copy link
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* ── Items list ─────────────────────────────────────────────── */}
+        <section className="mt-4">
+          <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+            <Package className="h-4 w-4" />
+            Items ({order.items.length})
+          </h2>
+          <ul className="space-y-2">
+            {order.items.map((it) => (
+              <li key={it.id} className="flex gap-3 rounded-lg border border-border bg-muted/20 p-2">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-medium">{it.productName}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {sizeLabel(it.width, it.height)} · {it.width * it.height} maps × {it.quantity}
+                  </div>
+                  <div className="mt-0.5 text-xs font-medium text-accent">
+                    {formatPrice(it.unitPrice * it.quantity)}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
 
-      {/* ── Items list ─────────────────────────────────────────────── */}
-      <section className="mt-4 rounded-xl border border-border bg-card p-4">
-        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-          <Package className="h-4 w-4" />
-          Items ({order.items.length})
-        </h2>
-        <ul className="space-y-2">
-          {order.items.map((it) => (
-            <li
-              key={it.id}
-              className="flex gap-3 rounded-lg border border-border bg-muted/20 p-2"
-            >
-              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md">
-                <PixelArt svg={it.productPreviewSvg} alt={it.productName} aspect="square" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate font-medium">{it.productName}</div>
-                <div className="text-xs text-muted-foreground">
-                  <code className="font-mono">{it.productCode}</code> ·{' '}
-                  {sizeLabel(it.width, it.height)} · {it.width * it.height} maps × {it.quantity}
-                </div>
-                <div className="mt-0.5 text-xs font-medium text-accent">
-                  {formatPrice(it.unitPrice * it.quantity)}
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-sm">
-          <span className="text-muted-foreground">Total tiles to deliver</span>
-          <span className="font-semibold">{totalMaps}</span>
-        </div>
-      </section>
-
-      {/* ── Lifecycle actions (Phase 1) ───────────────────────────── */}
+      {/* ── Order actions ──────────────────────────────────────────── */}
       <section className="mt-4 rounded-xl border border-border bg-card p-4">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
           <Hand className="h-4 w-4" />
@@ -366,23 +217,27 @@ export function OrderDetail({ orderCode }: { orderCode: string }) {
               Awaiting payment
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Send exactly{' '}
-              <code className="font-mono text-foreground">
+              Run this command in-game to pay{' '}
+              <strong className="text-foreground">
                 {formatPriceFull(order.totalAmount)}
-              </code>{' '}
-              in-game. The payment matcher will detect the transfer and
-              transition this order to <strong>Paid</strong>.
+              </strong>:
             </p>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={simulatePayment}
-              disabled={busy}
-              className="mt-2 gap-1.5"
-            >
-              <RefreshCw className={cn('h-3 w-3', busy && 'animate-spin')} />
-              Simulate payment match
-            </Button>
+            <div className="mt-2 flex items-center justify-between gap-3 rounded-[3px] border-[1.5px] border-primary bg-primary p-2.5 text-primary-foreground">
+              <code className="font-mono text-sm break-all">
+                /pay doodly_yousuf {order.totalAmount}
+              </code>
+              <button
+                onClick={() => {
+                  const cmd = `/pay doodly_yousuf ${order.totalAmount}`;
+                  navigator.clipboard.writeText(cmd);
+                  toast({ title: 'Copied', description: cmd });
+                }}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-[3px] border border-[oklch(0.5_0.025_65)] px-2.5 py-1 text-xs hover:border-primary-foreground"
+              >
+                <Copy className="h-3 w-3" />
+                Copy
+              </button>
+            </div>
           </div>
         )}
 
@@ -459,7 +314,6 @@ export function OrderDetail({ orderCode }: { orderCode: string }) {
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 Claimed at {new Date(order.claimedAt ?? order.createdAt).toLocaleString()}.
-                Only {order.claimedBy} can unclaim or mark as delivered.
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -518,41 +372,17 @@ export function OrderDetail({ orderCode }: { orderCode: string }) {
         )}
       </section>
 
-      {/* ── Metadata block ───────────────────────────────────────── */}
+      {/* ── Metadata ─────────────────────────────────────────────── */}
       <section className="mt-4 rounded-xl border border-border bg-card/60 p-4 text-sm">
         <div className="grid grid-cols-2 gap-2">
           <Meta icon={Hash} label="Code" value={order.code} />
           <Meta icon={User} label="Player" value={order.player} />
-          <Meta
-            icon={Coins}
-            label="Payment ref"
-            value={order.paymentRef ?? '—'}
-          />
-          <Meta
-            icon={Clock}
-            label="Matched at"
-            value={order.paymentMatchedAt ? new Date(order.paymentMatchedAt).toLocaleString() : '—'}
-          />
-          <Meta
-            icon={Hand}
-            label="Claimed by"
-            value={order.claimedBy ?? '—'}
-          />
-          <Meta
-            icon={Clock}
-            label="Claimed at"
-            value={order.claimedAt ? new Date(order.claimedAt).toLocaleString() : '—'}
-          />
-          <Meta
-            icon={CheckCircle2}
-            label="Delivered by"
-            value={order.deliveredBy ?? '—'}
-          />
-          <Meta
-            icon={Clock}
-            label="Delivered at"
-            value={order.deliveredAt ? new Date(order.deliveredAt).toLocaleString() : '—'}
-          />
+          <Meta icon={Coins} label="Payment ref" value={order.paymentRef ?? '—'} />
+          <Meta icon={Clock} label="Matched at" value={order.paymentMatchedAt ? new Date(order.paymentMatchedAt).toLocaleString() : '—'} />
+          <Meta icon={Hand} label="Claimed by" value={order.claimedBy ?? '—'} />
+          <Meta icon={Clock} label="Claimed at" value={order.claimedAt ? new Date(order.claimedAt).toLocaleString() : '—'} />
+          <Meta icon={CheckCircle2} label="Delivered by" value={order.deliveredBy ?? '—'} />
+          <Meta icon={Clock} label="Delivered at" value={order.deliveredAt ? new Date(order.deliveredAt).toLocaleString() : '—'} />
         </div>
       </section>
     </div>

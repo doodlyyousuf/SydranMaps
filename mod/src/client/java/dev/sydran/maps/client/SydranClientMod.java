@@ -31,6 +31,9 @@ public class SydranClientMod implements ClientModInitializer {
         // Register the highlight bridge (server→client tick handler)
         HighlightBridge.register();
 
+        // Register chat payment watcher — auto-verifies players who paid
+        ChatPaymentWatcher.register();
+
         SydranMapsMod.LOGGER.info("[Sydran Maps] Client mod ready. Commands: /sydran <status|openorders|claim|deliver|add|...>");
     }
 }

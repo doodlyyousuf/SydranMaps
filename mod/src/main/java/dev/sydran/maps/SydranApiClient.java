@@ -37,6 +37,9 @@ public class SydranApiClient {
     }
     public JsonObject addProduct(Map<String, Object> body) throws Exception { return post("/api/mod/add", body); }
 
+    /** Public GET — used by ChatPaymentWatcher to fetch unverified users. */
+    public JsonObject getRaw(String path) throws Exception { return get(path); }
+
     private JsonObject get(String path) throws Exception {
         HttpRequest req = HttpRequest.newBuilder()
             .uri(URI.create(config.getApiUrl() + path))
