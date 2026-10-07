@@ -42,6 +42,8 @@ import {
   Pencil,
   Trash2,
   Loader2,
+  UserCheck,
+  Clock,
 } from 'lucide-react';
 
 export function AdminView() {
@@ -49,6 +51,9 @@ export function AdminView() {
   const { toast } = useToast();
   const [orders, setOrders] = useState<OrderView[]>([]);
   const [products, setProducts] = useState<ProductView[]>([]);
+  const [unverified, setUnverified] = useState<
+    Array<{ id: string; username: string; minecraftIgn: string; verifyAmount: number; createdAt: string }>
+  >([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<ProductView | null>(null);
   const [deleting, setDeleting] = useState<ProductView | null>(null);
@@ -59,10 +64,12 @@ export function AdminView() {
     Promise.all([
       fetch('/api/orders').then((r) => r.json()),
       fetch('/api/products').then((r) => r.json()),
+      fetch('/api/user/unverified').then((r) => r.json()),
     ])
-      .then(([o, p]) => {
+      .then(([o, p, u]) => {
         setOrders(o.orders ?? []);
         setProducts(p.products ?? []);
+        setUnverified(u.users ?? []);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -129,6 +136,29 @@ export function AdminView() {
     }
   };
 
+  const verifyUser = async (username: string) => {
+    try {
+      const res = await fetch('/api/user/simulate-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Verify failed');
+      toast({
+        title: 'Player verified',
+        description: `${data.matched.ign} paid ${data.matched.amount} to ${data.matched.paidTo}. Account verified.`,
+      });
+      load();
+    } catch (e) {
+      toast({
+        title: 'Verify failed',
+        description: e instanceof Error ? e.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const totalMaps = products.reduce((s, p) => s + p.totalMaps, 0);
   const deliveredCount = orders.filter(
     (o) => o.status === 'delivered'
@@ -175,6 +205,56 @@ export function AdminView() {
           color="text-emerald-300"
         />
       </div>
+
+      {/* ── Pending player verifications ────────────────────────── */}
+      {unverified.length > 0 && (
+        <section className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+          <h2 className="mb-3 flex items-center gap-2 font-pixel text-sm font-bold uppercase tracking-wider text-amber-600">
+            <UserCheck className="h-4 w-4" />
+            Pending Verifications ({unverified.length})
+          </h2>
+          <p className="mb-3 text-xs text-muted-foreground">
+            These players signed up and were asked to pay a verification
+            amount to doodly_yousuf. Click <strong>Verify</strong> once
+            you've confirmed the payment in-game.
+          </p>
+          <ul className="space-y-1.5">
+            {unverified.map((u) => (
+              <li
+                key={u.id}
+                className="flex items-center gap-3 rounded-md border border-border bg-card/60 p-2"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium">
+                    {u.minecraftIgn}
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      ({u.username})
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Pay <strong className="text-foreground">
+                      {u.verifyAmount}
+                    </strong>{' '}
+                    DonutSMP dollars to doodly_yousuf
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  <Clock className="mr-1 inline h-3 w-3" />
+                  {new Date(u.createdAt).toLocaleDateString()}
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => verifyUser(u.username)}
+                  className="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-500"
+                >
+                  <UserCheck className="h-3.5 w-3.5" />
+                  Verify
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {loading ? (
         <div className="mt-6 space-y-3">
