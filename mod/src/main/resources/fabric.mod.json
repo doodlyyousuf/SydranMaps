@@ -3,7 +3,7 @@
   "id": "sydranmaps",
   "version": "${version}",
   "name": "Sydran Maps",
-  "description": "Minecraft map-art store integration. Upload maps, check for duplicates, set prices and categories — all from in-game commands.",
+  "description": "Client-side Minecraft map-art store integration. Upload maps, check for duplicates, view/claim orders, highlight required maps — all from chat commands. No server installation required.",
   "authors": ["Sydran Maps"],
   "contact": {
     "homepage": "https://github.com/doodlyyousuf/SydranMaps",
@@ -11,9 +11,8 @@
   },
   "license": "MIT",
   "icon": "assets/sydranmaps/icon.png",
-  "environment": "*",
+  "environment": "client",
   "entrypoints": {
-    "main": ["dev.sydran.maps.SydranMapsMod"],
     "client": ["dev.sydran.maps.client.SydranClientMod"]
   },
   "depends": {
