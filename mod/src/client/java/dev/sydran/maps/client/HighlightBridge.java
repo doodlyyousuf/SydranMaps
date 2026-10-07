@@ -1,9 +1,9 @@
 package dev.sydran.maps.client;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 import dev.sydran.maps.highlight.HighlightStore;
 
 public class HighlightBridge {
@@ -15,11 +15,11 @@ public class HighlightBridge {
                 try {
                     int count = MapHighlighter.highlightForOrder(orderCode);
                     if (client.player != null) {
-                        if (count > 0) client.player.sendMessage(Text.literal("\u2713 " + count + " maps highlighted for " + orderCode).formatted(Formatting.GREEN), false);
-                        else client.player.sendMessage(Text.literal("\u26A0 No maps found. Run /sydran rescan " + orderCode).formatted(Formatting.YELLOW), false);
+                        if (count > 0) client.player.sendSystemMessage(Component.literal("\u2713 " + count + " maps highlighted for " + orderCode).withStyle(ChatFormatting.GREEN));
+                        else client.player.sendSystemMessage(Component.literal("\u26A0 No maps found. Run /sydran rescan " + orderCode).withStyle(ChatFormatting.YELLOW));
                     }
                 } catch (Exception e) {
-                    if (client.player != null) client.player.sendMessage(Text.literal("\u2717 Highlight failed: " + e.getMessage()).formatted(Formatting.RED), false);
+                    if (client.player != null) client.player.sendSystemMessage(Component.literal("\u2717 Highlight failed: " + e.getMessage()).withStyle(ChatFormatting.RED));
                 }
             }
         });
