@@ -5,6 +5,7 @@ import {
   generateTileHash,
   generateProductHash,
   generateTileData,
+  renderMapColorData,
 } from '@/lib/pixel-art';
 import {
   accentFor,
@@ -68,6 +69,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Build canonical tile list with positions preserved exactly.
+  // Store the actual map colour data if the mod sent it (base64-encoded
+  // 128×128 byte array), so the web can render real Minecraft map art.
   const tileRows = Array.from({ length: expectedTiles }, (_, k) => {
     const posX = k % width;
     const posY = Math.floor(k / width);
@@ -78,7 +81,10 @@ export async function POST(req: NextRequest) {
       tileHash:
         incoming?.tileHash ??
         generateTileHash({ productName, category, posX, posY }),
-      tileData: generateTileData({ productName, posX, posY }),
+      // Store base64 colour data if provided, otherwise fall back to placeholder
+      tileData: incoming?.colorData
+        ? String(incoming.colorData)
+        : generateTileData({ productName, posX, posY }),
     };
   });
 
@@ -114,12 +120,22 @@ export async function POST(req: NextRequest) {
   const code = nextProductCode(existingCodes.map((p) => p.code));
   const accentColor = accentFor(category);
 
-  // Store thumbnail SVG for gallery cards. The full multi-tile panorama
-  // is generated client-side on the product-detail page.
-  const previewSvg = generateThumbnailSvg({
-    name: productName,
-    category,
-  });
+  // If the first tile has real map colour data (base64), use it for the
+  // gallery thumbnail. Otherwise fall back to the procedural generator.
+  const firstTileData = tileRows[0]?.tileData;
+  const hasRealData = firstTileData && !firstTileData.includes('::');
+  const previewSvg = hasRealData
+    ? renderMapColorData(firstTileData, 4)
+    : generateThumbnailSvg({ name: productName, category });
+
+  // Generate the full panorama from real data if available
+  const panoramaSvg = (() => {
+    if (!hasRealData) return '';
+    const allTiles = tileRows
+      .sort((a, b) => a.posY - b.posY || a.posX - b.posX)
+      .map((t) => renderMapColorData(t.tileData, 4));
+    return allTiles.join('');
+  })();
 
   const product = await db.product.create({
     data: {

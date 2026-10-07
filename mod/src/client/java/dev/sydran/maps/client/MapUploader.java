@@ -41,16 +41,19 @@ public class MapUploader {
             return;
         }
 
-        // Hash each tile
+        // Hash each tile + send colour data as base64
         List<Map<String, Object>> tilePayload = new ArrayList<>();
         for (int i = 0; i < tiles.size(); i++) {
             int posX = i % w;
             int posY = i / w;
-            String hash = MapHasher.tileHash(tiles.get(i), posX, posY, productName);
+            byte[] colors = tiles.get(i);
+            String hash = MapHasher.tileHash(colors, posX, posY, productName);
+            String colorData = java.util.Base64.getEncoder().encodeToString(colors);
             Map<String, Object> tile = new HashMap<>();
             tile.put("posX", posX);
             tile.put("posY", posY);
             tile.put("tileHash", hash);
+            tile.put("colorData", colorData);
             tilePayload.add(tile);
         }
 

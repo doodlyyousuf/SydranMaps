@@ -2,32 +2,47 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 import { StatusBadge } from './status-badge';
+import { PixelArt } from './pixel-art';
 import { useRouter } from './router';
 import { useToast } from '@/hooks/use-toast';
-import { formatPrice, sizeLabel } from '@/lib/sydran';
-import { PixelArt } from './pixel-art';
 import {
-  RefreshCw,
-  Database,
+  CATEGORIES,
+  categoryLabel,
+  formatPrice,
+  parsePrice,
+  sizeLabel,
+  type OrderView,
+  type ProductView,
+} from '@/lib/sydran';
+import {
   Package,
   ShoppingCart,
   Layers,
   CheckCircle2,
+  Pencil,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
-import type { OrderView, ProductView } from '@/lib/sydran';
 
 export function AdminView() {
   const { navigate } = useRouter();
@@ -35,7 +50,9 @@ export function AdminView() {
   const [orders, setOrders] = useState<OrderView[]>([]);
   const [products, setProducts] = useState<ProductView[]>([]);
   const [loading, setLoading] = useState(true);
-  const [reseeding, setReseeding] = useState(false);
+  const [editing, setEditing] = useState<ProductView | null>(null);
+  const [deleting, setDeleting] = useState<ProductView | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -54,86 +71,109 @@ export function AdminView() {
     load();
   }, [load]);
 
-  const reseed = async () => {
-    setReseeding(true);
+  const handleSave = async (updated: {
+    id: string;
+    name: string;
+    description: string;
+    price: string;
+    category: string;
+  }) => {
+    setSaving(true);
     try {
-      const res = await fetch('/api/seed', { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error ?? 'Seed failed');
-      toast({
-        title: 'Demo data reset',
-        description: 'Database re-seeded with sample products + orders.',
+      const res = await fetch(`/api/products/${updated.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: updated.name,
+          description: updated.description,
+          price: updated.price,
+          category: updated.category,
+        }),
       });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Update failed');
+      toast({ title: 'Product updated', description: data.product.name });
+      setEditing(null);
       load();
     } catch (e) {
       toast({
-        title: 'Seed failed',
+        title: 'Update failed',
         description: e instanceof Error ? e.message : 'Unknown error',
         variant: 'destructive',
       });
     } finally {
-      setReseeding(false);
+      setSaving(false);
     }
   };
 
-  // Quick stats
+  const handleDelete = async (product: ProductView) => {
+    try {
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Delete failed');
+      toast({
+        title: 'Product deleted',
+        description: `${product.name} (${product.code}) removed.`,
+      });
+      setDeleting(null);
+      load();
+    } catch (e) {
+      toast({
+        title: 'Delete failed',
+        description: e instanceof Error ? e.message : 'Unknown error',
+        variant: 'destructive',
+      });
+      setDeleting(null);
+    }
+  };
+
   const totalMaps = products.reduce((s, p) => s + p.totalMaps, 0);
-  const deliveredCount = orders.filter((o) => o.status === 'delivered').length;
-  const activeCount = orders.filter((o) => o.status === 'paid' || o.status === 'claimed').length;
+  const deliveredCount = orders.filter(
+    (o) => o.status === 'delivered'
+  ).length;
+  const activeCount = orders.filter(
+    (o) => o.status === 'paid' || o.status === 'claimed'
+  ).length;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-pixel text-2xl font-bold sm:text-3xl">Admin overview</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            All products + orders at a glance. Reset the demo data any time.
-          </p>
-        </div>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={reseeding}
-              className="gap-1.5"
-            >
-              {reseeding ? (
-                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Database className="h-3.5 w-3.5" />
-              )}
-              Reset demo data
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Reset all demo data?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will wipe every product, order, and mod-config row
-                and re-seed the database with the sample Sydran Maps
-                dataset. This cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={reseed}
-                className="bg-rose-600 text-white hover:bg-rose-500"
-              >
-                {reseeding ? 'Resetting…' : 'Yes, reset'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+      <div>
+        <h1 className="font-pixel text-2xl font-bold sm:text-3xl">
+          Admin overview
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Manage all products and orders.
+        </p>
       </div>
 
       {/* Stats tiles */}
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat icon={Package} label="Products" value={products.length} color="text-primary" />
-        <Stat icon={Layers} label="Total tiles" value={totalMaps} color="text-violet-300" />
-        <Stat icon={ShoppingCart} label="Active orders" value={activeCount} color="text-amber-300" />
-        <Stat icon={CheckCircle2} label="Delivered" value={deliveredCount} color="text-emerald-300" />
+        <Stat
+          icon={Package}
+          label="Products"
+          value={products.length}
+          color="text-primary"
+        />
+        <Stat
+          icon={Layers}
+          label="Total tiles"
+          value={totalMaps}
+          color="text-violet-300"
+        />
+        <Stat
+          icon={ShoppingCart}
+          label="Active orders"
+          value={activeCount}
+          color="text-amber-300"
+        />
+        <Stat
+          icon={CheckCircle2}
+          label="Delivered"
+          value={deliveredCount}
+          color="text-emerald-300"
+        />
       </div>
 
       {loading ? (
@@ -156,11 +196,17 @@ export function AdminView() {
                 {orders.slice(0, 12).map((o) => (
                   <li key={o.id}>
                     <button
-                      onClick={() => navigate({ name: 'order', code: o.code })}
+                      onClick={() =>
+                        navigate({ name: 'order', code: o.code })
+                      }
                       className="flex w-full items-center gap-2 rounded-md border border-transparent px-2 py-1.5 text-left hover:border-border hover:bg-muted/40"
                     >
-                      <code className="w-20 shrink-0 font-mono text-xs">{o.code}</code>
-                      <span className="w-28 truncate text-sm">{o.player}</span>
+                      <code className="w-20 shrink-0 font-mono text-xs">
+                        {o.code}
+                      </code>
+                      <span className="w-28 truncate text-sm">
+                        {o.player}
+                      </span>
                       <span className="flex-1 text-xs text-muted-foreground">
                         {o.items.length} item{o.items.length !== 1 ? 's' : ''}
                       </span>
@@ -175,32 +221,59 @@ export function AdminView() {
             )}
           </section>
 
-          {/* Products grid */}
+          {/* Products — full management grid */}
           <section className="rounded-xl border border-border bg-card p-4">
             <h2 className="mb-3 font-pixel text-sm font-bold uppercase tracking-wider">
-              Products
+              Products ({products.length})
             </h2>
             {products.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No products yet.</p>
+              <p className="text-sm text-muted-foreground">
+                No products yet.
+              </p>
             ) : (
-              <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {products.slice(0, 9).map((p) => (
-                  <li key={p.id}>
-                    <button
-                      onClick={() => navigate({ name: 'product', id: p.code })}
-                      className="flex w-full flex-col gap-1.5 rounded-md border border-transparent p-1.5 text-left hover:border-border hover:bg-muted/30"
-                    >
-                      <div className="aspect-square overflow-hidden rounded-md">
-                        <PixelArt svg={p.previewSvg} alt={p.name} aspect="square" />
+              <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {products.map((p) => (
+                  <li
+                    key={p.id}
+                    className="flex gap-2.5 rounded-md border border-border bg-muted/20 p-2"
+                  >
+                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md">
+                      <PixelArt
+                        svg={p.previewSvg}
+                        alt={p.name}
+                        aspect="square"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium">
+                        {p.name}
                       </div>
-                      <div className="min-w-0">
-                        <div className="truncate text-xs font-medium">{p.name}</div>
-                        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                          <span>{sizeLabel(p.width, p.height)}</span>
-                          <span className="font-medium text-accent">{formatPrice(p.price)}</span>
-                        </div>
+                      <div className="text-[10px] text-muted-foreground">
+                        <code className="font-mono">{p.code}</code> ·{' '}
+                        {sizeLabel(p.width, p.height)}
                       </div>
-                    </button>
+                      <div className="text-xs font-medium text-accent">
+                        {formatPrice(p.price)}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <button
+                        onClick={() => setEditing(p)}
+                        className="grid h-7 w-7 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                        aria-label="Edit"
+                        title="Edit"
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => setDeleting(p)}
+                        className="grid h-7 w-7 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-rose-500 hover:text-rose-500"
+                        aria-label="Delete"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -208,7 +281,177 @@ export function AdminView() {
           </section>
         </div>
       )}
+
+      {/* ── Edit dialog ──────────────────────────────────────────── */}
+      {editing && (
+        <EditProductDialog
+          product={editing}
+          onSave={handleSave}
+          onClose={() => setEditing(null)}
+          saving={saving}
+        />
+      )}
+
+      {/* ── Delete confirmation ──────────────────────────────────── */}
+      <Dialog
+        open={!!deleting}
+        onOpenChange={(o) => !o && setDeleting(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete {deleting?.name}?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This will permanently delete{' '}
+            <strong>{deleting?.code}</strong> ({deleting?.width}×
+            {deleting?.height}, {deleting?.totalMaps} tiles) from the
+            store. This cannot be undone.
+          </p>
+          {deleting && (
+            <p className="rounded-md bg-amber-500/10 p-2 text-xs text-amber-700">
+              Note: if this product is part of any active order, the
+              delete will be blocked.
+            </p>
+          )}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              onClick={() => deleting && handleDelete(deleting)}
+              className="gap-1.5 bg-rose-600 text-white hover:bg-rose-500"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete product
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+// ── Edit dialog ────────────────────────────────────────────────────
+
+function EditProductDialog({
+  product,
+  onSave,
+  onClose,
+  saving,
+}: {
+  product: ProductView;
+  onSave: (updated: {
+    id: string;
+    name: string;
+    description: string;
+    price: string;
+    category: string;
+  }) => void;
+  onClose: () => void;
+  saving: boolean;
+}) {
+  const [name, setName] = useState(product.name);
+  const [description, setDescription] = useState(product.description ?? '');
+  const [price, setPrice] = useState(String(product.price));
+  const [category, setCategory] = useState(product.category);
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit {product.code}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="edit-name" className="text-xs uppercase tracking-wider">
+              Name
+            </Label>
+            <Input
+              id="edit-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1.5"
+            />
+          </div>
+          <div>
+            <Label htmlFor="edit-price" className="text-xs uppercase tracking-wider">
+              Price (DonutSMP dollars, or shorthand like 1.5m)
+            </Label>
+            <Input
+              id="edit-price"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="mt-1.5 font-mono"
+              placeholder="150000 or 1.5m"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Current: {formatPrice(product.price)} ({product.price.toLocaleString()} DonutSMP dollars)
+            </p>
+          </div>
+          <div>
+            <Label htmlFor="edit-category" className="text-xs uppercase tracking-wider">
+              Category
+            </Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger id="edit-category" className="mt-1.5">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {categoryLabel(c)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="edit-desc" className="text-xs uppercase tracking-wider">
+              Description
+            </Label>
+            <Textarea
+              id="edit-desc"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="mt-1.5 min-h-[80px]"
+              placeholder="Optional product description"
+            />
+          </div>
+          <div className="rounded-md bg-muted/40 p-2 text-xs text-muted-foreground">
+            <strong className="text-foreground">Size:</strong>{' '}
+            {sizeLabel(product.width, product.height)} ·{' '}
+            <strong className="text-foreground">Tiles:</strong>{' '}
+            {product.totalMaps}
+            <br />
+            <span>
+              Map dimensions and tile count cannot be edited after
+              creation.
+            </span>
+          </div>
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+          <Button
+            onClick={() =>
+              onSave({
+                id: product.id,
+                name,
+                description,
+                price,
+                category,
+              })
+            }
+            disabled={saving || name.trim().length < 3}
+            className="gap-1.5"
+          >
+            {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            Save changes
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

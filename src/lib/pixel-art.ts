@@ -618,3 +618,99 @@ export function generateTileData(opts: {
 }): string {
   return `${opts.productName}::${opts.posX}x${opts.posY}`;
 }
+
+// ─── Minecraft Map Colour Palette (ID → RGB) ────────────────────────
+// In Minecraft, map colours are byte indices (0-255) into a palette.
+// The first 4 bits are the base colour, the last 4 bits are shading
+// (brightness multiplier). We decode both to get the actual RGB.
+const MAP_BASE_COLORS: Record<number, [number, number, number]> = {
+  0: [0, 0, 0],           // air/transparent
+  1: [127, 178, 56],      // grass
+  2: [247, 233, 163],     // sand
+  3: [199, 125, 89],      // wool/terracotta
+  4: [160, 83, 45],       // (used for various)
+  5: [150, 108, 74],      // stone variants
+  6: [216, 175, 147],     // (used for various)
+  7: [127, 167, 229],     // water
+  8: [180, 180, 180],     // ice
+  9: [167, 167, 167],     // (used for various)
+  10: [120, 120, 120],    // (used for various)
+  11: [89, 125, 39],      // (used for various)
+  12: [146, 113, 83],     // (used for various)
+  13: [86, 86, 86],       // (used for various)
+  14: [107, 107, 107],    // (used for various)
+  15: [0, 0, 255],        // (used for various)
+  // 16+ are modded/custom — fall back to grey
+};
+
+const MAP_SHADE_MULTIPLIERS = [0.54, 0.62, 0.73, 0.85, 1.0]; // 0-4
+
+/** Decode a map colour byte (0-255) into an RGB hex string. */
+function decodeMapColor(colorByte: number): string {
+  const baseIndex = (colorByte >> 4) & 0x0f; // top 4 bits
+  const shadeIndex = colorByte & 0x0f;        // bottom 4 bits
+
+  // Shade multiplier: 0=brightest, 3=darkest, 4=normal
+  const shadeLevel = shadeIndex > 3 ? 4 : shadeIndex;
+  const multiplier = MAP_SHADE_MULTIPLIERS[shadeLevel] ?? 1.0;
+
+  const base = MAP_BASE_COLORS[baseIndex] ?? [128, 128, 128];
+  const r = Math.min(255, Math.round(base[0] * multiplier));
+  const g = Math.min(255, Math.round(base[1] * multiplier));
+  const b = Math.min(255, Math.round(base[2] * multiplier));
+
+  return `rgb(${r},${g},${b})`;
+}
+
+/**
+ * Render actual Minecraft map colour data as an SVG.
+ *
+ * @param colorData base64-encoded 128×128 byte array (16384 bytes)
+ *   Each byte is a Minecraft map colour index.
+ * @param scale pixel size in the SVG (default 4 → 512×512 SVG)
+ * @returns SVG string showing the real map art
+ */
+export function renderMapColorData(
+  colorData: string,
+  scale = 4
+): string {
+  try {
+    // Decode base64 → byte array
+    const bytes = Buffer.from(colorData, 'base64');
+    if (bytes.length !== 128 * 128) {
+      // Not real map data — return empty
+      return '';
+    }
+
+    const cells: string[] = [];
+    for (let y = 0; y < 128; y++) {
+      for (let x = 0; x < 128; x++) {
+        const colorByte = bytes[y * 128 + x];
+        if (colorByte === 0) continue; // skip transparent
+        const fill = decodeMapColor(colorByte);
+        cells.push(
+          `<rect x="${x * scale}" y="${y * scale}" width="${scale}" height="${scale}" fill="${fill}"/>`
+        );
+      }
+    }
+
+    const svgW = 128 * scale;
+    const svgH = 128 * scale;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="xMidYMid slice">
+  ${cells.join('\n  ')}
+</svg>`;
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Check if a tile data string is base64 map colour data (not a placeholder).
+ * Placeholders look like "ProductName::0x0". Real data is base64.
+ */
+export function isRealMapData(tileData: string): boolean {
+  if (!tileData || tileData.includes('::')) return false;
+  // Base64 strings only contain A-Z, a-z, 0-9, +, /, =
+  return /^[A-Za-z0-9+/=]+$/.test(tileData) && tileData.length > 100;
+}
+
