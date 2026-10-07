@@ -64,15 +64,72 @@ public class SydranCommand {
         dispatcher.register(literal("sydran")
             .then(literal("status").executes(ctx -> status(ctx, config)))
             .then(literal("setprice").then(argument("amount", StringArgumentType.greedyString()).executes(ctx -> setPrice(ctx, config))))
-            .then(literal("setcategory").then(argument("category", StringArgumentType.word()).executes(ctx -> setCategory(ctx, config))))
+            .then(literal("setcategory").then(argument("category", StringArgumentType.word())
+                .suggests((ctx, builder) -> { for (String c : VALID_CATEGORIES) builder.suggest(c); return builder.buildFuture(); })
+                .executes(ctx -> setCategory(ctx, config))))
             .then(literal("setsize").then(argument("size", StringArgumentType.word()).executes(ctx -> setSize(ctx, config))))
-            .then(literal("setduplicate").then(argument("state", StringArgumentType.word()).executes(ctx -> setDuplicate(ctx, config))))
-            // ── Single-map upload (one command) ───────────────────────
-            .then(literal("add").then(argument("params", StringArgumentType.greedyString()).executes(ctx -> addWithParams(ctx, config))))
-            // ── Multi-map upload session ──────────────────────────────
-            .then(literal("addmulti").then(argument("params", StringArgumentType.greedyString()).executes(ctx -> startMulti(ctx, config))))
+            .then(literal("setduplicate").then(argument("state", StringArgumentType.word())
+                .suggests((ctx, builder) -> { builder.suggest("on"); builder.suggest("off"); return builder.buildFuture(); })
+                .executes(ctx -> setDuplicate(ctx, config))))
+            // ── /sydran add name <name> price <price> category <category> ──
+            // Autocomplete: typing "/sydran add " suggests "name"
+            // After the name value, suggests "price"
+            // After the price value, suggests "category" + lists valid categories
+            .then(literal("add")
+                .then(literal("name")
+                    .then(argument("name", StringArgumentType.string())
+                        .then(literal("price")
+                            .then(argument("price", StringArgumentType.word())
+                                .then(literal("category")
+                                    .then(argument("category", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> { for (String c : VALID_CATEGORIES) builder.suggest(c); return builder.buildFuture(); })
+                                        .executes(ctx -> addStructured(ctx, config))
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+            // ── /sydran addmulti name <name> price <price> category <category> ──
+            .then(literal("addmulti")
+                .then(literal("name")
+                    .then(argument("name", StringArgumentType.string())
+                        .then(literal("price")
+                            .then(argument("price", StringArgumentType.word())
+                                .then(literal("category")
+                                    .then(argument("category", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> { for (String c : VALID_CATEGORIES) builder.suggest(c); return builder.buildFuture(); })
+                                        .executes(ctx -> startMultiStructured(ctx, config))
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
             .then(literal("multimap")
-                .then(literal("tile").then(argument("pos", StringArgumentType.word()).executes(ctx -> addMultiTile(ctx))))
+                .then(literal("tile").then(argument("pos", StringArgumentType.word())
+                    .suggests((ctx, builder) -> {
+                        // Suggest next logical tile position based on current session
+                        if (inMultiSession && multiMaxX > 0) {
+                            // Suggest positions that haven't been filled yet
+                            for (int y = 1; y <= multiMaxY; y++) {
+                                for (int x = 1; x <= multiMaxX; x++) {
+                                    boolean filled = false;
+                                    for (int[] pos : multiTilePositions) {
+                                        if (pos[0] == x && pos[1] == y) { filled = true; break; }
+                                    }
+                                    if (!filled) builder.suggest(x + "-" + y);
+                                }
+                            }
+                        } else {
+                            // First tile — suggest 1-1
+                            builder.suggest("1-1");
+                        }
+                        return builder.buildFuture();
+                    })
+                    .executes(ctx -> addMultiTile(ctx))))
                 .then(literal("done").executes(ctx -> finishMulti(ctx, config)))
                 .then(literal("cancel").executes(ctx -> cancelMulti(ctx)))
                 .then(literal("status").executes(ctx -> multiStatus(ctx)))
@@ -113,24 +170,10 @@ public class SydranCommand {
     //  Single-map upload — one command does everything
     // ═════════════════════════════════════════════════════════════════
 
-    private static int addWithParams(CommandContext<FabricClientCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
-        String input = StringArgumentType.getString(ctx, "params");
-        Map<String, String> params = parseParams(input);
-
-        String name = params.get("name");
-        String priceStr = params.get("price");
-        String category = params.getOrDefault("category", config.getCategory());
-
-        if (name == null || name.isEmpty()) {
-            ctx.getSource().sendError(Component.literal("\u2717 Missing name! Usage: /sydran add name:\"My Map\" price:50k category:anime")
-                .withStyle(ChatFormatting.RED));
-            return 0;
-        }
-        if (priceStr == null || priceStr.isEmpty()) {
-            ctx.getSource().sendError(Component.literal("\u2717 Missing price! Usage: /sydran add name:\"My Map\" price:50k category:anime")
-                .withStyle(ChatFormatting.RED));
-            return 0;
-        }
+    private static int addStructured(CommandContext<FabricClientCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+        String name = StringArgumentType.getString(ctx, "name");
+        String priceStr = StringArgumentType.getString(ctx, "price");
+        String category = StringArgumentType.getString(ctx, "category").toLowerCase();
 
         int price = parsePrice(priceStr);
         if (price < 0) {
@@ -138,15 +181,14 @@ public class SydranCommand {
                 .withStyle(ChatFormatting.RED));
             return 0;
         }
-        if (!VALID_CATEGORIES.contains(category.toLowerCase())) {
+        if (!VALID_CATEGORIES.contains(category)) {
             ctx.getSource().sendError(Component.literal("\u2717 Invalid category: " + category + ". Valid: " + String.join(", ", VALID_CATEGORIES))
                 .withStyle(ChatFormatting.RED));
             return 0;
         }
 
-        // Temporarily set config for this upload
         config.setPrice(price);
-        config.setCategory(category.toLowerCase());
+        config.setCategory(category);
         config.setMapSize(1, 1);
 
         final String productName = name;
@@ -166,34 +208,20 @@ public class SydranCommand {
     }
 
     // ═════════════════════════════════════════════════════════════════
-    //  /sydran addmulti name:"Anime Castle" price:1.5m category:castle
+    //  /sydran addmulti name <name> price <price> category <category>
     //  Starts a multi-map upload session
     // ═════════════════════════════════════════════════════════════════
 
-    private static int startMulti(CommandContext<FabricClientCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
+    private static int startMultiStructured(CommandContext<FabricClientCommandSource> ctx, SydranConfig config) throws CommandSyntaxException {
         if (inMultiSession) {
             ctx.getSource().sendError(Component.literal("\u2717 Already in a multi-map session! Run /sydran multimap done or /sydran multimap cancel first.")
                 .withStyle(ChatFormatting.RED));
             return 0;
         }
 
-        String input = StringArgumentType.getString(ctx, "params");
-        Map<String, String> params = parseParams(input);
-
-        String name = params.get("name");
-        String priceStr = params.get("price");
-        String category = params.getOrDefault("category", config.getCategory());
-
-        if (name == null || name.isEmpty()) {
-            ctx.getSource().sendError(Component.literal("\u2717 Missing name! Usage: /sydran addmulti name:\"Anime Castle\" price:1.5m category:castle")
-                .withStyle(ChatFormatting.RED));
-            return 0;
-        }
-        if (priceStr == null || priceStr.isEmpty()) {
-            ctx.getSource().sendError(Component.literal("\u2717 Missing price! Usage: /sydran addmulti name:\"Anime Castle\" price:1.5m category:castle")
-                .withStyle(ChatFormatting.RED));
-            return 0;
-        }
+        String name = StringArgumentType.getString(ctx, "name");
+        String priceStr = StringArgumentType.getString(ctx, "price");
+        String category = StringArgumentType.getString(ctx, "category").toLowerCase();
 
         int price = parsePrice(priceStr);
         if (price < 0) {
@@ -201,16 +229,15 @@ public class SydranCommand {
                 .withStyle(ChatFormatting.RED));
             return 0;
         }
-        if (!VALID_CATEGORIES.contains(category.toLowerCase())) {
+        if (!VALID_CATEGORIES.contains(category)) {
             ctx.getSource().sendError(Component.literal("\u2717 Invalid category: " + category)
                 .withStyle(ChatFormatting.RED));
             return 0;
         }
 
-        // Start session
         multiName = name;
         multiPrice = price;
-        multiCategory = category.toLowerCase();
+        multiCategory = category;
         multiTileData.clear();
         multiTilePositions.clear();
         multiMaxX = 0;
